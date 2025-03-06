@@ -17,8 +17,7 @@ const readFileAsync = promisify(readFile);
 
 let parse: ((toml: string) => IarnaToml.JsonMap) | null = null;
 
-// @ts-ignore
-import("@iarna/toml")
+const parseLoadPromise: Promise<void> = import("@iarna/toml")
 	.then((module) => {
 		parse = module.parse;
 	})
@@ -39,6 +38,8 @@ export class FConfigurationToml extends FConfigurationDictionary {
 		arrayIndexKey: string = FConfiguration.DEFAULT_INDEX_KEY,
 		arrayIndexesKey: string = FConfiguration.DEFAULT_INDEXES_KEY
 	): Promise<FConfigurationToml> {
+		await parseLoadPromise;
+
 		const tomlConfigFileURL: URL = pathToFileURL(tomlConfigFile);
 		const sourceURI: URL = new URL(
 			`configuration+file+toml://${tomlConfigFileURL.pathname}`
@@ -54,11 +55,13 @@ export class FConfigurationToml extends FConfigurationDictionary {
 		);
 	}
 
-	public static factory(
+	public static async factory(
 		tomlDocument: string,
 		arrayIndexKey: string = FConfiguration.DEFAULT_INDEX_KEY,
 		arrayIndexesKey: string = FConfiguration.DEFAULT_INDEXES_KEY
-	): FConfigurationToml {
+	): Promise<FConfigurationToml> {
+		await parseLoadPromise;
+
 		const encodedTomlDocument: string = encodeURIComponent(tomlDocument);
 		const sourceURI: URL = new URL(
 			`configuration:toml?data=${encodedTomlDocument}`

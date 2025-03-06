@@ -5,16 +5,16 @@ import { assert } from "chai";
 import { FConfigurationToml } from "../../src/index.js";
 
 describe("FConfigurationToml basic tests", function () {
-	it("Parse array of float", function () {
-		const config = FConfigurationToml.factory("a = [1.01,1e-1]");
+	it("Parse array of float", async function () {
+		const config = await FConfigurationToml.factory("a = [1.01,1e-1]");
 
 		assert.equal(config.get("a.indexes").asString, "0 1");
 		assert.equal(config.get("a.0").asString, "1.01");
 		assert.equal(config.get("a.1").asString, "0.1");
 	});
 
-	it("Parse array of object", function () {
-		const config = FConfigurationToml.factory(`
+	it("Parse array of object", async function () {
+		const config = await FConfigurationToml.factory(`
 [setup]
 [[setup.model]]
 title = "model1"
@@ -37,8 +37,8 @@ desc = "desc3"
 		assert.equal(config.get("setup.model.2.desc").asString, "desc3");
 	});
 
-	it("Parse array of object with index", function () {
-		const config = FConfigurationToml.factory(`
+	it("Parse array of object with index", async function () {
+		const config = await FConfigurationToml.factory(`
 [setup]
 [[setup.model]]
 index = "model1"
@@ -63,8 +63,8 @@ desc = "desc3"
 		assert.equal(config.get("setup.model.model3.title").asString, "model3");
 		assert.equal(config.get("setup.model.model3.desc").asString, "desc3");
 	});
-	it("Parse array of object with named index", function () {
-		const config = FConfigurationToml.factory(`
+	it("Parse array of object with named index", async function () {
+		const config = await FConfigurationToml.factory(`
 [setup]
 
 "model.indexes" = "model1 model3"
@@ -94,8 +94,8 @@ desc = "desc3"
 	});
 
 
-	it("getArray with named index", function () {
-		const config = FConfigurationToml.factory(`
+	it("getArray with named index", async function () {
+		const config = await FConfigurationToml.factory(`
 [setup]
 
 "model.indexes" = "model1 model3"
@@ -129,7 +129,7 @@ desc = "desc3"
 });
 
 describe("FConfigurationToml Regression 0.10.11", function () {
-	it("FConfigurationToml.getArray should exclude 'index' key", function () {
+	it("FConfigurationToml.getArray should exclude 'index' key", async function () {
 
 		const tomlData = `
 "edgebus.setup.topic.indexes" = "TOPC201f5dddf40e4ef9b6b9de17ad37bb76"
@@ -140,7 +140,7 @@ describe("FConfigurationToml Regression 0.10.11", function () {
 	mediaType = "application/json"
 `;
 
-		const config: FConfigurationToml = FConfigurationToml.factory(tomlData, "index", "indexes");
+		const config: FConfigurationToml = await FConfigurationToml.factory(tomlData, "index", "indexes");
 
 		const setupNamespace: FConfiguration = config.getNamespace("edgebus.setup");
 		const topics: Array<FConfiguration> = setupNamespace.getArray("topic");

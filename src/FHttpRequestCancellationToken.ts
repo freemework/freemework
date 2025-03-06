@@ -1,4 +1,4 @@
-import { FCancellationToken, FException, FCancellationException } from "@freemework/common";
+import { FCancellationToken, FException, FCancellationException, FExceptionAggregate } from "@freemework/common";
 
 import * as http from "http";
 
@@ -45,7 +45,7 @@ export class FHttpRequestCancellationToken implements FCancellationToken {
 
 		this._isCancellationRequested = true;
 
-		let errors: Array<Error> | null = null;
+		let errors: Array<FException> | null = null;
 		if (this._cancelListeners.length > 0) {
 			// Release callback. We do not need its anymore
 			const cancelListeners = this._cancelListeners.splice(0);
@@ -59,7 +59,7 @@ export class FHttpRequestCancellationToken implements FCancellationToken {
 			}
 		}
 		if (errors !== null && errors.length > 0) {
-			throw new AggregateError(errors);
+			throw new FExceptionAggregate(errors);
 		}
 	}
 }

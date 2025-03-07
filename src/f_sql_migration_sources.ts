@@ -336,7 +336,7 @@ class NotSupportedUrlSchemaException extends FExceptionInvalidOperation {
 
 
 const sqlFilesExtensions = Object.freeze([".sql"]);
-const jsFilesExtensions = Object.freeze([".js"]);
+const jsFilesExtensions = Object.freeze([".js", ".javascript"]);
 function resolveScriptKindByExtension(fileName: string): FSqlMigrationSources.Script.Kind {
 	const ext = path.extname(fileName);
 	if (sqlFilesExtensions.includes(ext)) {

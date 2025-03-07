@@ -12,7 +12,6 @@ export interface LoggerFactory { (loggerName: string): FLogger; }
 
 export interface FLoggerMessageFactory { (): string; }
 
-
 export abstract class FLogger {
 	private static _loggerFactory: LoggerFactory | null = null;
 	private static get loggerFactory(): LoggerFactory {
@@ -55,52 +54,38 @@ export abstract class FLogger {
 
 	public abstract debug(executionContext: FExecutionContext, message: string, ex?: FException): void;
 	public abstract debug(executionContext: FExecutionContext, messageFactory: FLoggerMessageFactory, ex?: FException): void;
-	// public abstract debug(
-	// 	labels: FLoggerLabels,
-	// 	message: string,
-	// 	ex?: FException,
-	// ): void;
 
 	public abstract info(executionContext: FExecutionContext, message: string): void;
 	public abstract info(executionContext: FExecutionContext, messageFactory: FLoggerMessageFactory): void;
-	// public abstract info(
-	// 	labels: FLoggerLabels,
-	// 	message: string,
-	// ): void;
 
 	public abstract warn(executionContext: FExecutionContext, message: string): void;
 	public abstract warn(executionContext: FExecutionContext, messageFactory: FLoggerMessageFactory): void;
-	// public abstract warn(
-	// 	labels: FLoggerLabels,
-	// 	message: string,
-	// ): void;
 
 	public abstract error(executionContext: FExecutionContext, message: string): void;
 	public abstract error(executionContext: FExecutionContext, messageFactory: FLoggerMessageFactory): void;
-	// public abstract error(
-	// 	labels: FLoggerLabels,
-	// 	message: string,
-	// ): void;
 
 	public abstract fatal(executionContext: FExecutionContext, message: string): void;
 	public abstract fatal(executionContext: FExecutionContext, messageFactory: FLoggerMessageFactory): void;
-	// public abstract fatal(
-	// 	labels: FLoggerLabels,
-	// 	message: string,
-	// ): void;
+
+	public abstract log(
+		executionContext: FExecutionContext,
+		level: FLoggerLevel,
+		messageOrMessageFactory: string | FLoggerMessageFactory,
+		ex?: FException,
+	): void;
 }
 
 export abstract class FLoggerBase extends FLogger {
-	public get isTraceEnabled(): boolean { return this.isLevelEnabled(FLoggerLevel.TRACE); }
-	public get isDebugEnabled(): boolean { return this.isLevelEnabled(FLoggerLevel.DEBUG); }
-	public get isInfoEnabled(): boolean { return this.isLevelEnabled(FLoggerLevel.INFO); }
-	public get isWarnEnabled(): boolean { return this.isLevelEnabled(FLoggerLevel.WARN); }
-	public get isErrorEnabled(): boolean { return this.isLevelEnabled(FLoggerLevel.ERROR); }
-	public get isFatalEnabled(): boolean { return this.isLevelEnabled(FLoggerLevel.FATAL); }
+	public override get isTraceEnabled(): boolean { return this.isLevelEnabled(FLoggerLevel.TRACE); }
+	public override get isDebugEnabled(): boolean { return this.isLevelEnabled(FLoggerLevel.DEBUG); }
+	public override get isInfoEnabled(): boolean { return this.isLevelEnabled(FLoggerLevel.INFO); }
+	public override get isWarnEnabled(): boolean { return this.isLevelEnabled(FLoggerLevel.WARN); }
+	public override get isErrorEnabled(): boolean { return this.isLevelEnabled(FLoggerLevel.ERROR); }
+	public override get isFatalEnabled(): boolean { return this.isLevelEnabled(FLoggerLevel.FATAL); }
 
-	public get name(): string { return this._name; }
+	public override get name(): string { return this._name; }
 
-	public trace(
+	public override trace(
 		variant: FExecutionContext | FLoggerLabels,
 		messageOrMessageFactory: string | FLoggerMessageFactory,
 		ex?: FException,
@@ -112,10 +97,10 @@ export abstract class FLoggerBase extends FLogger {
 		const loggerLabels: FLoggerLabels = FLoggerBase._resolveLoggerLabels(variant);
 		const message: string = FLoggerBase._resolveMessage(messageOrMessageFactory);
 
-		this.log(FLoggerLevel.TRACE, loggerLabels, message, ex);
+		this.writeLog(FLoggerLevel.TRACE, loggerLabels, message, ex);
 	}
 
-	public debug(
+	public override debug(
 		variant: FExecutionContext | FLoggerLabels,
 		messageOrMessageFactory: string | FLoggerMessageFactory,
 		ex?: FException,
@@ -127,10 +112,10 @@ export abstract class FLoggerBase extends FLogger {
 		const loggerLabels: FLoggerLabels =
 			FLoggerBase._resolveLoggerLabels(variant);
 		const message: string = FLoggerBase._resolveMessage(messageOrMessageFactory);
-		this.log(FLoggerLevel.DEBUG, loggerLabels, message, ex);
+		this.writeLog(FLoggerLevel.DEBUG, loggerLabels, message, ex);
 	}
 
-	public info(
+	public override info(
 		variant: FExecutionContext | FLoggerLabels,
 		messageOrMessageFactory: string | FLoggerMessageFactory,
 	): void {
@@ -141,10 +126,10 @@ export abstract class FLoggerBase extends FLogger {
 		const loggerLabels: FLoggerLabels =
 			FLoggerBase._resolveLoggerLabels(variant);
 		const message: string = FLoggerBase._resolveMessage(messageOrMessageFactory);
-		this.log(FLoggerLevel.INFO, loggerLabels, message);
+		this.writeLog(FLoggerLevel.INFO, loggerLabels, message);
 	}
 
-	public warn(
+	public override warn(
 		variant: FExecutionContext | FLoggerLabels,
 		messageOrMessageFactory: string | FLoggerMessageFactory,
 	): void {
@@ -155,10 +140,10 @@ export abstract class FLoggerBase extends FLogger {
 		const loggerLabels: FLoggerLabels =
 			FLoggerBase._resolveLoggerLabels(variant);
 		const message: string = FLoggerBase._resolveMessage(messageOrMessageFactory);
-		this.log(FLoggerLevel.WARN, loggerLabels, message);
+		this.writeLog(FLoggerLevel.WARN, loggerLabels, message);
 	}
 
-	public error(
+	public override error(
 		variant: FExecutionContext | FLoggerLabels,
 		messageOrMessageFactory: string | FLoggerMessageFactory,
 	): void {
@@ -169,10 +154,10 @@ export abstract class FLoggerBase extends FLogger {
 		const loggerLabels: FLoggerLabels =
 			FLoggerBase._resolveLoggerLabels(variant);
 		const message: string = FLoggerBase._resolveMessage(messageOrMessageFactory);
-		this.log(FLoggerLevel.ERROR, loggerLabels, message);
+		this.writeLog(FLoggerLevel.ERROR, loggerLabels, message);
 	}
 
-	public fatal(
+	public override fatal(
 		variant: FExecutionContext | FLoggerLabels,
 		messageOrMessageFactory: string | FLoggerMessageFactory,
 	): void {
@@ -183,7 +168,19 @@ export abstract class FLoggerBase extends FLogger {
 		const loggerLabels: FLoggerLabels =
 			FLoggerBase._resolveLoggerLabels(variant);
 		const message: string = FLoggerBase._resolveMessage(messageOrMessageFactory);
-		this.log(FLoggerLevel.FATAL, loggerLabels, message);
+		this.writeLog(FLoggerLevel.FATAL, loggerLabels, message);
+	}
+
+	public override log(
+		executionContext: FExecutionContext,
+		level: FLoggerLevel,
+		messageOrMessageFactory: string | FLoggerMessageFactory,
+		ex?: FException,
+	): void {
+		const loggerLabels: FLoggerLabels =
+			FLoggerBase._resolveLoggerLabels(executionContext);
+		const message: string = FLoggerBase._resolveMessage(messageOrMessageFactory);
+		this.writeLog(level, loggerLabels, message, ex);
 	}
 
 	protected constructor(loggerName: string) {
@@ -197,11 +194,11 @@ export abstract class FLoggerBase extends FLogger {
 	///
 	/// Override this method to implement custom logger
 	///
-	protected abstract log(
+	protected abstract writeLog(
 		level: FLoggerLevel,
 		labels: FLoggerLabels,
 		message: string,
-		exception?: FException,
+		ex?: FException,
 	): void;
 
 	private readonly _name: string;
@@ -295,8 +292,6 @@ export abstract class FLoggerBaseWithLevel extends FLoggerBase {
 	private readonly levels: Map<FLoggerLevel, boolean>;
 }
 
-
-// import { FLoggerConsole } from "./f_logger_console.js";  // Yes, here cyclic dependencies. Import here due to circular dependencies
 export abstract class FLoggerConsole extends FLoggerBaseWithLevel {
 	/**
 	 * Factory constructor
@@ -322,11 +317,11 @@ export namespace FLoggerConsole {
 
 
 class FLoggerConsoleTextImpl extends FLoggerConsole {
-	protected log(
+	protected writeLog(
 		level: FLoggerLevel,
 		labels: FLoggerLabels,
 		message: string,
-		exception?: FException
+		ex?: FException
 	): void {
 		let logMessageBuffer = `${new Date().toISOString()} ${this.name} [${level}]`;
 		for (const [labelName, labelValue] of Object.entries(labels)) {
@@ -337,8 +332,8 @@ class FLoggerConsoleTextImpl extends FLoggerConsole {
 		logMessageBuffer += message;
 		logMessageBuffer += "\n";
 
-		if (exception != undefined) {
-			logMessageBuffer += exception.toString();
+		if (ex != undefined) {
+			logMessageBuffer += ex.toString();
 			logMessageBuffer += "\n";
 		}
 
@@ -379,7 +374,7 @@ class FLoggerConsoleJsonImpl extends FLoggerBaseWithLevel {
 		level: FLoggerLevel,
 		labels: FLoggerLabels,
 		message: string,
-		exception?: FException | null,
+		ex?: FException | null,
 	): string {
 		const logEntryBase: Pick<FLoggerConsoleJsonLogEntry, 'name' | 'date' | 'level'> = {
 			name: loggerName,
@@ -397,11 +392,11 @@ class FLoggerConsoleJsonImpl extends FLoggerBaseWithLevel {
 			...labelsObj,
 			message,
 		};
-		if (exception !== undefined && exception != null) {
-			logEntry["exception.name"] = exception.name;
-			logEntry["exception.message"] = exception.message;
-			if (exception.stack !== undefined) {
-				logEntry["exception.stack"] = exception.stack;
+		if (ex !== undefined && ex != null) {
+			logEntry["exception.name"] = ex.name;
+			logEntry["exception.message"] = ex.message;
+			if (ex.stack !== undefined) {
+				logEntry["exception.stack"] = ex.stack;
 			}
 		}
 
@@ -410,13 +405,13 @@ class FLoggerConsoleJsonImpl extends FLoggerBaseWithLevel {
 		return logMessage;
 	}
 
-	protected log(level: FLoggerLevel, labels: FLoggerLabels, message: string, exception?: FException): void {
+	protected writeLog(level: FLoggerLevel, labels: FLoggerLabels, message: string, ex?: FException): void {
 		const logMessage: string = FLoggerConsoleJsonImpl.formatLogMessage(
 			this.name,
 			level,
 			labels,
 			message,
-			exception,
+			ex,
 		);
 		switch (level) {
 			case FLoggerLevel.TRACE:

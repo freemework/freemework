@@ -1,0 +1,34 @@
+{
+	"folders": [
+		{
+			"name": "workspace",
+			"path": "."
+		},
+		{
+			"path": "docs"
+		},
+		{
+			"path": "src-decimal_bignumberjs-typescript"
+		},
+		{
+			"path": "src-hosting-typescript"
+		},
+		{
+			"path": "src-sql_misc_migration-typescript"
+		},
+		{
+			"path": "src-sql_postgres-typescript"
+		},
+		{
+			"path": "src-common-typescript"
+		},
+		{
+			"path": "src-workflow-typescript"
+		}
+	],
+	"settings": {
+		"cSpell.words": [
+			"Freemework"
+		]
+	}
+}

@@ -734,6 +734,39 @@ myDescribe(`PostgreSQL Tests (schema:general_test_1_${timestamp})`, function () 
 		chai.assert.instanceOf(expectedError, FSqlExceptionConstraint);
 		chai.assert.isDefined(expectedError.innerException);
 	});
+
+	it("Read NULL VARCHAR ARRAY as nullable string array through executeScalar", async function () {
+		const result = await getFSqlProvider()
+			.statement(
+				"SELECT vchar_products FROM tb_3 WHERE id = 1"
+			)
+			.executeScalar(FExecutionContext.Default); // executeScalar() should return first row + first column
+		chai.assert.equal(result.asStringArrayNullable, null);
+	});
+	it("Read NULL TEXT ARRAY as nullable string array through executeScalar", async function () {
+		const result = await getFSqlProvider()
+			.statement(
+				"SELECT txt_products FROM tb_3 WHERE id = 1"
+			)
+			.executeScalar(FExecutionContext.Default); // executeScalar() should return first row + first column
+		chai.assert.equal(result.asStringArrayNullable, null);
+	});
+	it("Read VARCHAR ARRAY as string array through executeScalar", async function () {
+		const result = await getFSqlProvider()
+			.statement(
+				"SELECT vchar_products FROM tb_3 WHERE id = 2"
+			)
+			.executeScalar(FExecutionContext.Default); // executeScalar() should return first row + first column
+		chai.assert.equal(result.asStringArray.length, 4);
+	});
+	it("Read TEXT ARRAY as string array through executeScalar", async function () {
+		const result = await getFSqlProvider()
+			.statement(
+				"SELECT txt_products FROM tb_3 WHERE id = 2"
+			)
+			.executeScalar(FExecutionContext.Default); // executeScalar() should return first row + first column
+		chai.assert.equal(result.asStringArray.length, 4);
+	});
 });
 
 

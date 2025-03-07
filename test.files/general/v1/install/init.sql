@@ -12,13 +12,38 @@ INSERT INTO "tb_1" VALUES ('three', 3);
 
 -- DROP TABLE IF EXISTS "tb_2";
 CREATE TABLE "tb_2" (
-	"id"         SERIAL,
-	"first_name" VARCHAR(32) NOT NULL,
-	"last_name"  VARCHAR(32) NOT NULL,
+	"id"             SERIAL,
+	"first_name"     VARCHAR(32) NOT NULL,
+	"last_name"      VARCHAR(32) NOT NULL,
 	PRIMARY KEY ("id")
 );
 INSERT INTO "tb_2"("first_name","last_name") VALUES ('Maxim', 'Anurin');
 INSERT INTO "tb_2"("first_name","last_name") VALUES ('Serhii', 'Zghama');
+
+-- DROP TABLE IF EXISTS "tb_3";
+CREATE TABLE "tb_3" (
+	"id"             INT,
+	"vchar_products" VARCHAR(128)[] NULL,
+	"txt_products"   TEXT[] NULL,
+	PRIMARY KEY ("id")
+);
+INSERT INTO "tb_3"("id", "vchar_products", "txt_products") VALUES (1, NULL, NULL);
+INSERT INTO "tb_3"("id", "vchar_products", "txt_products") VALUES (
+	2,
+	ARRAY [
+        'Samsung Galaxy J3 Duos SM-J320 Gold',
+        'Штани за 40 гривень',
+        'Пес Дюк плюшевий з імітацією звуку Trixie 35918 40 см',
+        'Доставка'
+    ],
+	ARRAY [
+        'Samsung Galaxy J3 Duos SM-J320 Gold',
+        'Штани за 40 гривень',
+        'Пес Дюк плюшевий з імітацією звуку Trixie 35918 40 см',
+        'Доставка'
+    ]
+);
+
 
 -- DROP TABLE IF EXISTS "tb_financial";
 CREATE TABLE "tb_financial" (

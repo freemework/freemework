@@ -26,12 +26,19 @@ import {
 	FLoggerLabelsExecutionContext
 } from "@freemework/common";
 
-// import {  } from "lodash-es";
 import pg from "pg";
 
 /**
  * Package oid contains OID constants as defined by the Postgres server.
- * @description Use a query `SELECT concat(typname, ' = ', oid, ',') FROM pg_type WHERE oid < 10000 ORDER BY oid` to generate this enum.
+ * @description
+	SELECT
+		CASE
+			WHEN "typcategory" = 'A' THEN CONCAT('array', "typname", ' = ', "oid", ',')
+			ELSE CONCAT("typname", ' = ', "oid", ',')
+		END
+	FROM "pg_type"
+	WHERE "oid" < 10000 ORDER BY "oid"
+ * @see PG type codes - https://www.postgresql.org/docs/current/catalog-pg-type.html#CATALOG-TYPCATEGORY-TABLE
  * @see https://github.com/postgres/postgres/blob/2e4db241bfd3206bad8286f8ffc2db6bbdaefcdf/src/include/catalog/pg_type.dat
  */
 const enum PostgresObjectID {
@@ -41,7 +48,7 @@ const enum PostgresObjectID {
 	name = 19,
 	int8 = 20,
 	int2 = 21,
-	int2vector = 22,
+	arrayint2vector = 22,
 	int4 = 23,
 	regproc = 24,
 	text = 25,
@@ -49,7 +56,7 @@ const enum PostgresObjectID {
 	tid = 27,
 	xid = 28,
 	cid = 29,
-	oidvector = 30,
+	arrayoidvector = 30,
 	pg_ddl_command = 32,
 	pg_type = 71,
 	pg_attribute = 75,
@@ -57,10 +64,15 @@ const enum PostgresObjectID {
 	pg_class = 83,
 	json = 114,
 	xml = 142,
-	_xml = 143,
+	array_xml = 143,
 	pg_node_tree = 194,
-	_json = 199,
-	smgr = 210,
+	array_json = 199,
+	array_pg_type = 210,
+	table_am_handler = 269,
+	array_pg_attribute = 270,
+	array_xid8 = 271,
+	array_pg_proc = 272,
+	array_pg_class = 273,
 	index_am_handler = 325,
 	point = 600,
 	lseg = 601,
@@ -68,86 +80,82 @@ const enum PostgresObjectID {
 	box = 603,
 	polygon = 604,
 	line = 628,
-	_line = 629,
+	array_line = 629,
 	cidr = 650,
-	_cidr = 651,
+	array_cidr = 651,
 	float4 = 700,
 	float8 = 701,
-	abstime = 702,
-	reltime = 703,
-	tinterval = 704,
 	unknown = 705,
 	circle = 718,
-	_circle = 719,
+	array_circle = 719,
+	macaddr8 = 774,
+	array_macaddr8 = 775,
 	money = 790,
-	_money = 791,
+	array_money = 791,
 	macaddr = 829,
 	inet = 869,
-	_bool = 1000,
-	_bytea = 1001,
-	_char = 1002,
-	_name = 1003,
-	_int2 = 1005,
-	_int2vector = 1006,
-	_int4 = 1007,
-	_regproc = 1008,
-	_text = 1009,
-	_tid = 1010,
-	_xid = 1011,
-	_cid = 1012,
-	_oidvector = 1013,
-	_bpchar = 1014,
-	_varchar = 1015,
-	_int8 = 1016,
-	_point = 1017,
-	_lseg = 1018,
-	_path = 1019,
-	_box = 1020,
-	_float4 = 1021,
-	_float8 = 1022,
-	_abstime = 1023,
-	_reltime = 1024,
-	_tinterval = 1025,
-	_polygon = 1027,
-	_oid = 1028,
+	array_bool = 1000,
+	array_bytea = 1001,
+	array_char = 1002,
+	array_name = 1003,
+	array_int2 = 1005,
+	array_int2vector = 1006,
+	array_int4 = 1007,
+	array_regproc = 1008,
+	array_text = 1009,
+	array_tid = 1010,
+	array_xid = 1011,
+	array_cid = 1012,
+	array_oidvector = 1013,
+	array_bpchar = 1014,
+	array_varchar = 1015,
+	array_int8 = 1016,
+	array_point = 1017,
+	array_lseg = 1018,
+	array_path = 1019,
+	array_box = 1020,
+	array_float4 = 1021,
+	array_float8 = 1022,
+	array_polygon = 1027,
+	array_oid = 1028,
 	aclitem = 1033,
-	_aclitem = 1034,
-	_macaddr = 1040,
-	_inet = 1041,
+	array_aclitem = 1034,
+	array_macaddr = 1040,
+	array_inet = 1041,
 	bpchar = 1042,
 	varchar = 1043,
 	date = 1082,
 	time = 1083,
 	timestamp = 1114,
-	_timestamp = 1115,
-	_date = 1182,
-	_time = 1183,
+	array_timestamp = 1115,
+	array_date = 1182,
+	array_time = 1183,
 	timestamptz = 1184,
-	_timestamptz = 1185,
+	array_timestamptz = 1185,
 	interval = 1186,
-	_interval = 1187,
-	_numeric = 1231,
+	array_interval = 1187,
+	array_numeric = 1231,
 	pg_database = 1248,
-	_cstring = 1263,
+	array_cstring = 1263,
 	timetz = 1266,
-	_timetz = 1270,
+	array_timetz = 1270,
 	bit = 1560,
-	_bit = 1561,
+	array_bit = 1561,
 	varbit = 1562,
-	_varbit = 1563,
+	array_varbit = 1563,
 	numeric = 1700,
 	refcursor = 1790,
-	_refcursor = 2201,
+	array_refcursor = 2201,
 	regprocedure = 2202,
 	regoper = 2203,
 	regoperator = 2204,
 	regclass = 2205,
 	regtype = 2206,
-	_regprocedure = 2207,
-	_regoper = 2208,
-	_regoperator = 2209,
-	_regclass = 2210,
-	_regtype = 2211,
+	array_regprocedure = 2207,
+	array_regoper = 2208,
+	array_regoperator = 2209,
+	array_regclass = 2210,
+	array_regtype = 2211,
 	record = 2249,
 	cstring = 2275,
 	any = 2276,
@@ -156,52 +164,82 @@ const enum PostgresObjectID {
 	trigger = 2279,
 	language_handler = 2280,
 	internal = 2281,
-	opaque = 2282,
 	anyelement = 2283,
 	_record = 2287,
 	anynonarray = 2776,
 	pg_authid = 2842,
 	pg_auth_members = 2843,
-	_txid_snapshot = 2949,
+	array_txid_snapshot = 2949,
 	uuid = 2950,
-	_uuid = 2951,
+	array_uuid = 2951,
 	txid_snapshot = 2970,
 	fdw_handler = 3115,
 	pg_lsn = 3220,
-	_pg_lsn = 3221,
+	array_pg_lsn = 3221,
 	tsm_handler = 3310,
+	pg_ndistinct = 3361,
+	pg_dependencies = 3402,
 	anyenum = 3500,
 	tsvector = 3614,
 	tsquery = 3615,
 	gtsvector = 3642,
-	_tsvector = 3643,
-	_gtsvector = 3644,
-	_tsquery = 3645,
+	array_tsvector = 3643,
+	array_gtsvector = 3644,
+	array_tsquery = 3645,
 	regconfig = 3734,
-	_regconfig = 3735,
+	array_regconfig = 3735,
 	regdictionary = 3769,
-	_regdictionary = 3770,
+	array_regdictionary = 3770,
 	jsonb = 3802,
-	_jsonb = 3807,
+	array_jsonb = 3807,
 	anyrange = 3831,
 	event_trigger = 3838,
 	int4range = 3904,
-	_int4range = 3905,
+	array_int4range = 3905,
 	numrange = 3906,
-	_numrange = 3907,
+	array_numrange = 3907,
 	tsrange = 3908,
-	_tsrange = 3909,
+	array_tsrange = 3909,
 	tstzrange = 3910,
-	_tstzrange = 3911,
+	array_tstzrange = 3911,
 	daterange = 3912,
-	_daterange = 3913,
+	array_daterange = 3913,
 	int8range = 3926,
-	_int8range = 3927,
+	array_int8range = 3927,
 	pg_shseclabel = 4066,
+	jsonpath = 4072,
+	array_jsonpath = 4073,
 	regnamespace = 4089,
-	_regnamespace = 4090,
+	array_regnamespace = 4090,
 	regrole = 4096,
-	_regrole = 4097
+	array_regrole = 4097,
+	regcollation = 4191,
+	array_regcollation = 4192,
+	int4multirange = 4451,
+	nummultirange = 4532,
+	tsmultirange = 4533,
+	tstzmultirange = 4534,
+	datemultirange = 4535,
+	int8multirange = 4536,
+	anymultirange = 4537,
+	anycompatiblemultirange = 4538,
+	pg_brin_bloom_summary = 4600,
+	pg_brin_minmax_multi_summary = 4601,
+	pg_mcv_list = 5017,
+	pg_snapshot = 5038,
+	array_pg_snapshot = 5039,
+	xid8 = 5069,
+	anycompatible = 5077,
+	anycompatiblearray = 5078,
+	anycompatiblenonarray = 5079,
+	anycompatiblerange = 5080,
+	pg_subscription = 6101,
+	array_int4multirange = 6150,
+	array_nummultirange = 6151,
+	array_tsmultirange = 6152,
+	array_tstzmultirange = 6153,
+	array_datemultirange = 6155,
+	array_int8multirange = 6157,
 }
 
 pg.types.setTypeParser(PostgresObjectID.timestamp as any, function (stringValue) {
@@ -1086,6 +1124,36 @@ class FSqlDataPostgres implements FSqlData {
 		}
 	}
 
+	public get asStringArray(): Array<string> {
+		if (this._postgresValue === null) {
+			throw new FExceptionInvalidOperation(this.formatWrongDataTypeMessage("asStringArray"));
+		} else if (this._fi.dataTypeID === PostgresObjectID.array_varchar) {
+			return this._postgresValue;
+		} else if (this._fi.dataTypeID === PostgresObjectID.array_text) {
+			return this._postgresValue;
+		} else {
+			throw new FExceptionInvalidOperation(this.formatWrongDataTypeMessage(
+				"asStringArray",
+				`Right now the library supports string array (OID=${PostgresObjectID.jsonb}) only.`
+			));
+		}
+	}
+
+	public get asStringArrayNullable(): Array<string> | null {
+		if (this._postgresValue === null) {
+			return null;
+		} else if (this._fi.dataTypeID === PostgresObjectID.array_varchar) {
+			return this._postgresValue;
+		} else if (this._fi.dataTypeID === PostgresObjectID.array_text) {
+			return this._postgresValue;
+		} else {
+			throw new FExceptionInvalidOperation(this.formatWrongDataTypeMessage(
+				"asStringArrayNullable",
+				`Right now the library supports string array (OID=${PostgresObjectID.jsonb}) only.`
+			));
+		}
+	}
+
 	public constructor(postgresValue: any, fi: pg.FieldDef) {
 		if (postgresValue === undefined) {
 			throw new FExceptionArgument("postgresValue");
@@ -1101,7 +1169,7 @@ class FSqlDataPostgres implements FSqlData {
 		} else {
 			valueConstructorName = `${this._postgresValue}`;
 		}
-		const message = `Invalid conversion for caller '${caller}' on a field '${this._fi.name}' with dataTypeID: '${this._fi.dataTypeID}'. PostgresValue instance of constructor '${valueConstructorName}'`;
+		const message = `Invalid conversion for caller '${caller}' on a field '${this._fi.name}' with dataTypeID: '${this._fi.dataTypeID}'. PostgresValue instance of constructor '${valueConstructorName}'.`;
 
 		if (subMessage !== undefined) {
 			return `${message} ${subMessage}`;

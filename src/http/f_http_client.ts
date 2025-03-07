@@ -9,15 +9,19 @@ import { FCancellationExecutionContext, FCancellationException, FCancellationTok
 import { FChannelInvoke } from "../channel/index.js";
 import { FException, FExceptionInvalidOperation, FExceptionNativeErrorWrapper } from "../exception/index.js";
 import { FExecutionContext } from "../execution_context/index.js";
-import { FLogger, FLoggerLabelsExecutionContext } from "../logging/index.js";
+import { FLogger, FLoggerLabelsExecutionContext, FLoggerLevel } from "../logging/index.js";
 
 export class FHttpClient implements FHttpClient.HttpInvokeChannel {
 	private readonly _log: FLogger;
+	private readonly _logLevelHeaders: FLoggerLevel;
+	private readonly _logLevelBody: FLoggerLevel;
 	private readonly _proxyOpts: FHttpClient.ProxyOpts | null;
 	private readonly _sslOpts: FHttpClient.SslOpts | null;
 	private readonly _requestTimeout: number;
 	public constructor(opts?: FHttpClient.Opts) {
 		this._log = opts !== undefined && opts.log !== undefined ? opts.log : FLogger.create(this.constructor.name);
+		this._logLevelBody = opts !== undefined && opts.logLevelBody !== undefined ? opts.logLevelBody : FLoggerLevel.DEBUG;
+		this._logLevelHeaders = opts !== undefined && opts.logLevelHeaders !== undefined ? opts.logLevelHeaders : FLoggerLevel.DEBUG;
 		this._proxyOpts = opts !== undefined && opts.proxyOpts !== undefined ? opts.proxyOpts : null;
 		this._sslOpts = opts !== undefined && opts.sslOpts !== undefined ? opts.sslOpts : null;
 		this._requestTimeout = opts !== undefined && opts.timeout !== undefined ? opts.timeout : FHttpClient.DEFAULT_TIMEOUT;
@@ -35,126 +39,128 @@ export class FHttpClient implements FHttpClient.HttpInvokeChannel {
 			},
 		);
 
-		if (this._log.isTraceEnabled) { this._log.trace(executionContext, "Begin invoke"); }
-		return new Promise<FHttpClient.Response>((resolve, reject) => {
-			const cancellationToken: FCancellationToken = FCancellationExecutionContext.of(executionContext).cancellationToken;
+		this._log.trace(executionContext, "Begin invoke");
+		try {
+			return await new Promise<FHttpClient.Response>((resolve, reject) => {
+				const cancellationToken: FCancellationToken = FCancellationExecutionContext.of(executionContext).cancellationToken;
 
-			let isConnectTimeout: boolean = false;
-			let resolved: boolean = false;
+				let isConnectTimeout: boolean = false;
+				let resolved: boolean = false;
 
-			const errorHandler = (e: Error) => {
-				const ex: FException = FException.wrapIfNeeded(e);
-				if (!resolved) {
-					resolved = true;
-					const msg = isConnectTimeout ? "Connect Timeout"
-						: `${method} ${url} failed with error: ${ex.message}. See innerException for details`;
-					this._log.debug(executionContext, msg, ex);
-					return reject(new FHttpClient.CommunicationError(url, method,
-						headers !== undefined ? headers : {},
-						body !== undefined ? body : Buffer.alloc(0),
-						msg, ex
-					));
-				}
-			};
-
-			const responseHandler = (response: http.IncomingMessage) => {
-				const responseDataChunks: Array<Buffer> = [];
-				response.on("data", (chunk: Buffer) => responseDataChunks.push(chunk));
-				response.on("error", errorHandler);
-				response.on("end", () => {
+				const errorHandler = (e: Error) => {
+					const ex: FException = FException.wrapIfNeeded(e);
 					if (!resolved) {
 						resolved = true;
-
-						if (isConnectTimeout) {
-							return reject(new FHttpClient.CommunicationError(url, method,
-								headers !== undefined ? headers : {},
-								body !== undefined ? body : Buffer.alloc(0),
-								"Connect Timeout"
-							));
-						}
-
-						const respStatus: number = response.statusCode || 500;
-						const respDescription: string = response.statusMessage || "";
-						const respHeaders = response.headers;
-						const respBody: Buffer = Buffer.concat(responseDataChunks);
-
-						if (this._log.isTraceEnabled) {
-							this._log.trace(executionContext, `Recv: ${JSON.stringify({ respStatus, respDescription, respHeaders })}`);
-							this._log.trace(executionContext, `Recv body: ${respBody.toString()}`);
-						}
-
-						if (respStatus < 400) {
-							return resolve({
-								statusCode: respStatus, statusDescription: respDescription,
-								headers: respHeaders, body: respBody
-							});
-						} else {
-							return reject(
-								new FHttpClient.WebError(
-									respStatus, respDescription,
-									url, method,
-									headers !== undefined ? headers : {}, body !== undefined ? body : Buffer.alloc(0),
-									respHeaders, respBody
-								)
-							);
-						}
-					}
-				});
-			};
-
-			try {
-				cancellationToken.throwIfCancellationRequested(); // Will raise error, we want to reject this Promise exactly with cancellation exception.
-			} catch (e) {
-				return reject(e);
-			}
-
-			const request: http.ClientRequest = this.createClientRequest(executionContext, { url, method, headers: headers! }, responseHandler, this._log);
-			if (body !== undefined) {
-				if (this._log.isTraceEnabled) { this._log.trace(executionContext, "Write body: " + body.toString()); }
-				request.write(body);
-			}
-			request.end();
-
-			request.on("error", errorHandler);
-			request.on("close", () => request.removeListener("close", errorHandler)); // Prevent memory-leaks
-
-			request.setTimeout(this._requestTimeout, () => {
-				isConnectTimeout = true;
-				request.destroy();
-			});
-			request.on("socket", socket => {
-				// this will setup connect timeout
-				socket.setTimeout(this._requestTimeout);
-				// socket.on("timeout", () => {
-				// 	isConnectTimeout = true;
-				// 	request.abort();
-				// });
-			});
-			if (cancellationToken !== undefined) {
-				const cb = () => {
-					request.destroy();
-					if (!resolved) {
-						resolved = true;
-						try {
-							cancellationToken.throwIfCancellationRequested(); // Should raise error
-							// Guard for broken implementation of cancellationToken
-							reject(new FCancellationException("Cancelled by user"));
-						} catch (e) {
-							reject(e);
-						}
+						const msg = isConnectTimeout ? "Connect Timeout"
+							: `${method} ${url} failed with error: ${ex.message}. See innerException for details`;
+						this._log.debug(executionContext, msg, ex);
+						return reject(new FHttpClient.CommunicationError(url, method,
+							headers !== undefined ? headers : {},
+							body !== undefined ? body : Buffer.alloc(0),
+							msg, ex
+						));
 					}
 				};
-				cancellationToken.addCancelListener(cb);
-				request.on("close", () => cancellationToken.removeCancelListener(cb)); // Prevent memory-leaks
-			}
-		});
+
+				const responseHandler = (response: http.IncomingMessage) => {
+					const responseDataChunks: Array<Buffer> = [];
+					response.on("data", (chunk: Buffer) => responseDataChunks.push(chunk));
+					response.on("error", errorHandler);
+					response.on("end", () => {
+						if (!resolved) {
+							resolved = true;
+
+							if (isConnectTimeout) {
+								return reject(new FHttpClient.CommunicationError(url, method,
+									headers !== undefined ? headers : {},
+									body !== undefined ? body : Buffer.alloc(0),
+									"Connect Timeout",
+								));
+							}
+
+							const respStatus: number = response.statusCode || 500;
+							const respDescription: string = response.statusMessage || "";
+							const respHeaders = response.headers;
+							const respBody: Buffer = Buffer.concat(responseDataChunks);
+
+							this._log.log(executionContext, this._logLevelHeaders, () => `Recv head: ${JSON.stringify({ respStatus, respDescription, respHeaders })}`);
+							this._log.log(executionContext, this._logLevelBody, () => `Recv body: ${respBody.toString()}`);
+
+							if (respStatus < 400) {
+								return resolve({
+									statusCode: respStatus, statusDescription: respDescription,
+									headers: respHeaders, body: respBody,
+								});
+							} else {
+								return reject(
+									new FHttpClient.WebError(
+										respStatus, respDescription,
+										url, method,
+										headers !== undefined ? headers : {}, body !== undefined ? body : Buffer.alloc(0),
+										respHeaders, respBody,
+									)
+								);
+							}
+						}
+					});
+				};
+
+				try {
+					cancellationToken.throwIfCancellationRequested(); // Will raise error, we want to reject this Promise exactly with cancellation exception.
+				} catch (e) {
+					return reject(e);
+				}
+
+				this._log.log(executionContext, this._logLevelHeaders, () => `Write head: ${JSON.stringify({ reqHeaders: headers })}`);
+				const request: http.ClientRequest = this.createClientRequest(executionContext, { url, method, headers: headers! }, responseHandler);
+				if (body !== undefined) {
+					this._log.log(executionContext, this._logLevelBody, () => `Write body: ${body.toString()}`);
+					request.write(body);
+				}
+				request.end();
+
+				request.on("error", errorHandler);
+				request.on("close", () => request.removeListener("close", errorHandler)); // Prevent memory-leaks
+
+				request.setTimeout(this._requestTimeout, () => {
+					isConnectTimeout = true;
+					request.destroy();
+				});
+				request.on("socket", socket => {
+					// this will setup connect timeout
+					socket.setTimeout(this._requestTimeout);
+					// socket.on("timeout", () => {
+					// 	isConnectTimeout = true;
+					// 	request.abort();
+					// });
+				});
+				if (cancellationToken !== undefined) {
+					const cb = () => {
+						request.destroy();
+						if (!resolved) {
+							resolved = true;
+							try {
+								cancellationToken.throwIfCancellationRequested(); // Should raise error
+								// Guard for broken implementation of cancellationToken
+								reject(new FCancellationException("Cancelled by user"));
+							} catch (e) {
+								reject(e);
+							}
+						}
+					};
+					cancellationToken.addCancelListener(cb);
+					request.on("close", () => cancellationToken.removeCancelListener(cb)); // Prevent memory-leaks
+				}
+			});
+		} finally {
+			this._log.trace(executionContext, "End invoke");
+		}
 	}
 
 	private createClientRequest(
 		executionContext: FExecutionContext,
 		{ url, method, headers }: FHttpClient.Request,
 		callback: (res: http.IncomingMessage) => void,
-		log: FLogger
 	): http.ClientRequest {
 		const proxyOpts = this._proxyOpts;
 		if (proxyOpts && proxyOpts.type === "http") {
@@ -166,9 +172,7 @@ export class FHttpClient implements FHttpClient.HttpInvokeChannel {
 				method,
 				headers: { Host: url.host, ...headers }
 			};
-			if (log.isTraceEnabled) {
-				log.trace(executionContext, "Call https.request: " + JSON.stringify(reqOpts));
-			}
+			this._log.trace(executionContext, () => `http.request(${JSON.stringify(reqOpts)})`);
 			return http.request(reqOpts, callback);
 		} else {
 			const reqOpts: https.RequestOptions = {
@@ -196,14 +200,10 @@ export class FHttpClient implements FHttpClient.HttpInvokeChannel {
 						reqOpts.cert = sslOpts.cert;
 					}
 				}
-				if (log.isTraceEnabled) {
-					log.trace(executionContext, "Call https.request: " + JSON.stringify(reqOpts));
-				}
+				this._log.trace(executionContext, () => `https.request(${JSON.stringify(reqOpts)})`);
 				return https.request(reqOpts, callback);
 			} else {
-				if (log.isTraceEnabled) {
-					log.trace(executionContext, "Call https.request: " + JSON.stringify(reqOpts));
-				}
+				this._log.trace(executionContext, () => `http.request(${JSON.stringify(reqOpts)})`);
 				return http.request(reqOpts, callback);
 			}
 		}
@@ -214,7 +214,24 @@ export namespace FHttpClient {
 	export const DEFAULT_TIMEOUT: number = 60000;
 
 	export interface Opts {
+		/**
+		 * Use used-defined logger
+		 */
 		log?: FLogger;
+
+		/**
+		 * Headers (request/response) will be be logged at this level
+		 * 
+		 * @default FLoggerLevel.DEBUG
+		 */
+		logLevelHeaders?: FLoggerLevel,
+
+		/**
+		 * Body (request/response) will be be logged at this level
+		 * 
+		 * @default FLoggerLevel.DEBUG
+		 */
+		logLevelBody?: FLoggerLevel,
 		timeout?: number;
 		proxyOpts?: ProxyOpts;
 		sslOpts?: SslOpts;

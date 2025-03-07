@@ -1,13 +1,14 @@
 import { FException, FExceptionAggregate } from "../exception/index.js";
+import { FCancellationException } from "./f_cancellation_exception.js";
 
-import { FCancellationToken } from "./f_cancellation_token.js";
+import { FCancellationToken, FCancellationTokenCallback } from "./f_cancellation_token.js";
 
 /**
  * Wrap several tokens as FCancellationToken
  */
 export class FCancellationTokenAggregated implements FCancellationToken {
 	private readonly _innerTokens: Array<FCancellationToken>;
-	private readonly _cancelListeners: Array<Function> = [];
+	private readonly _cancelListeners: Array<FCancellationTokenCallback> = [];
 
 	private _isCancellationRequested: boolean;
 
@@ -15,7 +16,7 @@ export class FCancellationTokenAggregated implements FCancellationToken {
 		this._innerTokens = tokens;
 		this._isCancellationRequested = false;
 
-		const listener = () => {
+		const listener = (cancellationEx: FCancellationException) => {
 			for (const innerToken of tokens) {
 				innerToken.removeCancelListener(listener);
 			}
@@ -26,7 +27,7 @@ export class FCancellationTokenAggregated implements FCancellationToken {
 				const cancelListeners = this._cancelListeners.splice(0);
 				cancelListeners.forEach(cancelListener => {
 					try {
-						cancelListener();
+						cancelListener(cancellationEx);
 					} catch (e) {
 						errors.push(FException.wrapIfNeeded(e));
 					}
@@ -48,11 +49,11 @@ export class FCancellationTokenAggregated implements FCancellationToken {
 		return this._isCancellationRequested;
 	}
 
-	public addCancelListener(cb: Function): void {
+	public addCancelListener(cb: FCancellationTokenCallback): void {
 		this._cancelListeners.push(cb);
 	}
 
-	public removeCancelListener(cb: Function): void {
+	public removeCancelListener(cb: FCancellationTokenCallback): void {
 		const cbIndex = this._cancelListeners.indexOf(cb);
 		if (cbIndex !== -1) {
 			this._cancelListeners.splice(cbIndex, 1);

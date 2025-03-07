@@ -68,7 +68,7 @@ export abstract class FLogger {
 	public abstract fatal(executionContext: FExecutionContext, messageFactory: FLoggerMessageFactory): void;
 
 	public abstract log(
-		executionContext: FExecutionContext,
+		executionContextOrLabels: FExecutionContext | FLoggerLabels,
 		level: FLoggerLevel,
 		messageOrMessageFactory: string | FLoggerMessageFactory,
 		ex?: FException,
@@ -172,13 +172,13 @@ export abstract class FLoggerBase extends FLogger {
 	}
 
 	public override log(
-		executionContext: FExecutionContext,
+		executionContextOrLabels: FExecutionContext | FLoggerLabels,
 		level: FLoggerLevel,
 		messageOrMessageFactory: string | FLoggerMessageFactory,
 		ex?: FException,
 	): void {
 		const loggerLabels: FLoggerLabels =
-			FLoggerBase._resolveLoggerLabels(executionContext);
+			FLoggerBase._resolveLoggerLabels(executionContextOrLabels);
 		const message: string = FLoggerBase._resolveMessage(messageOrMessageFactory);
 		this.writeLog(level, loggerLabels, message, ex);
 	}
@@ -203,7 +203,7 @@ export abstract class FLoggerBase extends FLogger {
 
 	private readonly _name: string;
 
-	private static _resolveLoggerLabels(
+	public static _resolveLoggerLabels(
 		variant: FExecutionContext | FLoggerLabels,
 	): FLoggerLabels {
 		if (variant === null || variant === undefined) {
@@ -223,7 +223,7 @@ export abstract class FLoggerBase extends FLogger {
 		}
 	}
 
-	private static _resolveMessage(messageOrMessageFactory: string | FLoggerMessageFactory): string {
+	public static _resolveMessage(messageOrMessageFactory: string | FLoggerMessageFactory): string {
 		if (typeof messageOrMessageFactory === "function") {
 			try {
 				messageOrMessageFactory = messageOrMessageFactory();

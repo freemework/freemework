@@ -8,8 +8,10 @@ import {
 	FSqlConnection,
 	FSqlConnectionFactory,
 	FException,
-	FLoggerMessageFactory,
 	FLoggerLabelsExecutionContext,
+	FLoggerLevel,
+	FLoggerBase,
+	FLoggerLabels,
 } from "@freemework/common";
 
 import { FSqlMigrationSources } from "./f_sql_migration_sources.js";
@@ -319,31 +321,15 @@ export namespace FSqlMigrationManager {
 	export class MigrationException extends FException { }
 	export class WrongMigrationDataException extends MigrationException { }
 
-	export class MigrationLogger implements FLogger {
-		public readonly isTraceEnabled: boolean;
-		public readonly isDebugEnabled: boolean;
-		public readonly isInfoEnabled: boolean;
-		public readonly isWarnEnabled: boolean;
-		public readonly isErrorEnabled: boolean;
-		public readonly isFatalEnabled: boolean;
-
+	export class MigrationLogger extends FLoggerBase {
 		private readonly _wrap: FLogger;
 		private readonly _lines: Array<string>;
 
 		public constructor(wrap: FLogger) {
-			this.isTraceEnabled = true;
-			this.isDebugEnabled = true;
-			this.isInfoEnabled = true;
-			this.isWarnEnabled = true;
-			this.isErrorEnabled = true;
-			this.isFatalEnabled = true;
+			super(wrap.name!);
 
 			this._lines = [];
 			this._wrap = wrap;
-		}
-
-		public get name(): string | null {
-			return this._wrap.name;
 		}
 
 		public flush(): string {
@@ -351,36 +337,27 @@ export namespace FSqlMigrationManager {
 			return this._lines.splice(0).join(EOL);
 		}
 
-		public trace(executionContext: FExecutionContext, message: string | FLoggerMessageFactory, ex?: FException): void {
-			this._wrap.trace(executionContext, message as any, ex);
-			this._lines.push("[TRACE] " + message);
-		}
-		public debug(executionContext: FExecutionContext, message: string | FLoggerMessageFactory, ex?: FException): void {
-			this._wrap.debug(executionContext, message as any, ex);
-			this._lines.push("[DEBUG] " + message);
-		}
-		public info(executionContext: FExecutionContext, message: string | FLoggerMessageFactory): void {
-			this._wrap.info(executionContext, message as any);
-			this._lines.push("[INFO] " + message);
-		}
-		public warn(executionContext: FExecutionContext, message: string | FLoggerMessageFactory): void {
-			this._wrap.warn(executionContext, message as any);
-			this._lines.push("[WARN] " + message);
-		}
-		public error(executionContext: FExecutionContext, message: string | FLoggerMessageFactory): void {
-			this._wrap.error(executionContext, message as any);
-			this._lines.push("[ERROR] " + message);
-		}
-		public fatal(executionContext: FExecutionContext, message: string | FLoggerMessageFactory): void {
-			this._wrap.fatal(executionContext, message as any);
-			this._lines.push("[FATAL]" + message);
+		public override writeLog(
+			level: FLoggerLevel,
+			labels: FLoggerLabels,
+			message: string,
+			ex?: FException,
+		): void {
+			let levelTxt: string;
+			switch (level) {
+				case FLoggerLevel.DEBUG: levelTxt = "[DEBUG]"; break;
+				case FLoggerLevel.INFO: levelTxt = "[INFO]"; break;
+				case FLoggerLevel.WARN: levelTxt = "[WARN]"; break;
+				case FLoggerLevel.ERROR: levelTxt = "[ERROR]"; break;
+				case FLoggerLevel.FATAL: levelTxt = "[FATAL]"; break;
+				default: levelTxt = "[TRACE]"; break;
+			}
+			this._wrap.log(labels, level, message, ex);
+			this._lines.push(`${levelTxt} ${message}`);
 		}
 
-		// public getLogger(name: string): FLoggerLegacy;
-		// public getLogger(name: string, context: FLoggerLegacy.Context): FLoggerLegacy;
-		// public getLogger(context: FLoggerLegacy.Context): FLoggerLegacy;
-		// public getLogger(name: unknown, context?: unknown): FLoggerLegacy {
-		// 	return this;
-		// }
+		protected override isLevelEnabled(_level: FLoggerLevel): boolean {
+			return true;
+		}
 	}
 }

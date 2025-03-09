@@ -97,7 +97,7 @@ export abstract class FLoggerBase extends FLogger {
 		const loggerLabels: FLoggerLabels = FLoggerBase._resolveLoggerLabels(variant);
 		const message: string = FLoggerBase._resolveMessage(messageOrMessageFactory);
 
-		this.writeLog(FLoggerLevel.TRACE, loggerLabels, message, ex);
+		this.writeToOutput(FLoggerLevel.TRACE, loggerLabels, message, ex);
 	}
 
 	public override debug(
@@ -112,7 +112,7 @@ export abstract class FLoggerBase extends FLogger {
 		const loggerLabels: FLoggerLabels =
 			FLoggerBase._resolveLoggerLabels(variant);
 		const message: string = FLoggerBase._resolveMessage(messageOrMessageFactory);
-		this.writeLog(FLoggerLevel.DEBUG, loggerLabels, message, ex);
+		this.writeToOutput(FLoggerLevel.DEBUG, loggerLabels, message, ex);
 	}
 
 	public override info(
@@ -126,7 +126,7 @@ export abstract class FLoggerBase extends FLogger {
 		const loggerLabels: FLoggerLabels =
 			FLoggerBase._resolveLoggerLabels(variant);
 		const message: string = FLoggerBase._resolveMessage(messageOrMessageFactory);
-		this.writeLog(FLoggerLevel.INFO, loggerLabels, message);
+		this.writeToOutput(FLoggerLevel.INFO, loggerLabels, message);
 	}
 
 	public override warn(
@@ -140,7 +140,7 @@ export abstract class FLoggerBase extends FLogger {
 		const loggerLabels: FLoggerLabels =
 			FLoggerBase._resolveLoggerLabels(variant);
 		const message: string = FLoggerBase._resolveMessage(messageOrMessageFactory);
-		this.writeLog(FLoggerLevel.WARN, loggerLabels, message);
+		this.writeToOutput(FLoggerLevel.WARN, loggerLabels, message);
 	}
 
 	public override error(
@@ -154,7 +154,7 @@ export abstract class FLoggerBase extends FLogger {
 		const loggerLabels: FLoggerLabels =
 			FLoggerBase._resolveLoggerLabels(variant);
 		const message: string = FLoggerBase._resolveMessage(messageOrMessageFactory);
-		this.writeLog(FLoggerLevel.ERROR, loggerLabels, message);
+		this.writeToOutput(FLoggerLevel.ERROR, loggerLabels, message);
 	}
 
 	public override fatal(
@@ -168,7 +168,7 @@ export abstract class FLoggerBase extends FLogger {
 		const loggerLabels: FLoggerLabels =
 			FLoggerBase._resolveLoggerLabels(variant);
 		const message: string = FLoggerBase._resolveMessage(messageOrMessageFactory);
-		this.writeLog(FLoggerLevel.FATAL, loggerLabels, message);
+		this.writeToOutput(FLoggerLevel.FATAL, loggerLabels, message);
 	}
 
 	public override log(
@@ -177,10 +177,14 @@ export abstract class FLoggerBase extends FLogger {
 		messageOrMessageFactory: string | FLoggerMessageFactory,
 		ex?: FException,
 	): void {
+		if(!this.isLevelEnabled(level)) {
+			return;
+		}
+
 		const loggerLabels: FLoggerLabels =
 			FLoggerBase._resolveLoggerLabels(executionContextOrLabels);
 		const message: string = FLoggerBase._resolveMessage(messageOrMessageFactory);
-		this.writeLog(level, loggerLabels, message, ex);
+		this.writeToOutput(level, loggerLabels, message, ex);
 	}
 
 	protected constructor(loggerName: string) {
@@ -191,10 +195,12 @@ export abstract class FLoggerBase extends FLogger {
 
 	protected abstract isLevelEnabled(level: FLoggerLevel): boolean;
 
-	///
-	/// Override this method to implement custom logger
-	///
-	protected abstract writeLog(
+	/**
+	 * Unconditionally(without check logLevel settings) write message to logger output.
+	 * 
+	 * Override this method to implement custom logger.
+	 */
+	protected abstract writeToOutput(
 		level: FLoggerLevel,
 		labels: FLoggerLabels,
 		message: string,
@@ -317,7 +323,7 @@ export namespace FLoggerConsole {
 
 
 class FLoggerConsoleTextImpl extends FLoggerConsole {
-	protected writeLog(
+	protected writeToOutput(
 		level: FLoggerLevel,
 		labels: FLoggerLabels,
 		message: string,
@@ -405,7 +411,7 @@ class FLoggerConsoleJsonImpl extends FLoggerBaseWithLevel {
 		return logMessage;
 	}
 
-	protected writeLog(level: FLoggerLevel, labels: FLoggerLabels, message: string, ex?: FException): void {
+	protected writeToOutput(level: FLoggerLevel, labels: FLoggerLabels, message: string, ex?: FException): void {
 		const logMessage: string = FLoggerConsoleJsonImpl.formatLogMessage(
 			this.name,
 			level,

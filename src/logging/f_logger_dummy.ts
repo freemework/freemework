@@ -21,7 +21,7 @@ export class FLoggerDummy extends FLoggerBase {
 	}
 
 	protected isLevelEnabled(_: FLoggerLevel): boolean { return false; }
-	protected writeLog(_: FLoggerLevel, __: FLoggerLabels, ___: string, ____?: FException): void { }
+	protected writeToOutput(_: FLoggerLevel, __: FLoggerLabels, ___: string, ____?: FException): void { }
 
 	private constructor(loggerName: string) { super(loggerName); }
 }

@@ -8,6 +8,7 @@ import type IarnaToml from "@iarna/toml";
 import {
 	FConfiguration,
 	FConfigurationDictionary,
+	FConfigurationException,
 	FException,
 	FExceptionInvalidOperation,
 	FUtilUnReadonly,
@@ -114,6 +115,14 @@ export class FConfigurationToml extends FConfigurationDictionary {
 					}
 					const subKey = `${ns}.${indexName}`;
 					recursiveWalker(innerSourceData, subKey);
+
+					if(indexes.includes(indexName)) {
+						throw new FConfigurationException(
+							`Index constraint violation, the index '${indexName}' appears twice.`,
+							ns,
+						);
+					}
+
 					indexes.push(indexName);
 				}
 

@@ -256,6 +256,26 @@ describe("FConfiguration#toDynamicView() tests", function () {
 		assert.strictEqual(itemsParent, viewRoot);
 	});
 
+	it("Should have $array", function () {
+		const config = FConfiguration.factoryJson({
+			"item.1.name": "1",
+			"item.2.name": "2",
+		});
+
+		const viewRoot = config.toDynamicView();
+		assert.isDefined(viewRoot);
+
+		const items = viewRoot["item"];
+		assert.isDefined(items);
+
+		const itemsArray = items["$array"];
+		assert.isArray(itemsArray);
+		assert.equal(itemsArray.length, 2);
+
+		assert.equal(itemsArray[0].name, "1");
+		assert.equal(itemsArray[1].name, "2");
+	});
+
 	it("random tests (need to split)", function () {
 		const config = FConfiguration.factoryJson({
 			"item.0": "example.org",

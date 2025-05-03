@@ -220,6 +220,86 @@ describe("FConfiguration tests", function () {
 	});
 });
 
+describe("FConfiguration#toDynamicView() tests", function () {
+	it.skip("Should have $root", function () {
+		const config = FConfiguration.factoryJson({
+			"item.0": "example.org",
+			"item.1": "example.org.devel",
+			"proxy.haproxy.image": "haproxy:3.0.10",
+		});
+
+		const viewRoot = config.toDynamicView();
+		assert.isDefined(viewRoot);
+
+		const items = viewRoot["item"];
+		assert.isDefined(items);
+
+		const itemsRoot = items["$root"];
+		assert.strictEqual(itemsRoot, viewRoot);
+		assert.strictEqual(itemsRoot, viewRoot["$root"]);
+	});
+
+	it.skip("Should have $parent", function () {
+		const config = FConfiguration.factoryJson({
+			"item.0": "example.org",
+			"item.1": "example.org.devel",
+			"proxy.haproxy.image": "haproxy:3.0.10",
+		});
+
+		const viewRoot = config.toDynamicView();
+		assert.isDefined(viewRoot);
+
+		const items = viewRoot["item"];
+		assert.isDefined(items);
+
+		const itemsParent = items["$parent"];
+		assert.strictEqual(itemsParent, viewRoot);
+	});
+
+	it("random tests (need to split)", function () {
+		const config = FConfiguration.factoryJson({
+			"item.0": "example.org",
+			"item.1": "example.org.devel",
+			"proxy.haproxy.image": "haproxy:3.0.10",
+			"proxy.socat.image": "alpine/socat:1.8.0.1",
+		});
+
+		const viewRoot = config.toDynamicView();
+		assert.isDefined(viewRoot);
+
+		const viewKeys = Object.keys(viewRoot);
+		assert.isDefined(viewKeys);
+
+		const mandatoryItems = viewRoot["item"];
+		assert.isDefined(mandatoryItems);
+		const mandatoryItemsArray = mandatoryItems["$array"];
+		assert.isArray(mandatoryItemsArray);
+
+		const optionalItems = viewRoot["?item"];
+		assert.isDefined(optionalItems);
+		const optionalItemsArray = optionalItems["$array"];
+		assert.isArray(optionalItemsArray);
+
+		const optionalNonExistingItems = viewRoot["?non_existing_item"];
+		assert.isNull(optionalNonExistingItems);
+
+		const mandatoryProxy = viewRoot["proxy"];
+		assert.isDefined(mandatoryProxy);
+		const mandatoryProxyKeys = Object.keys(mandatoryProxy);
+		assert.isDefined(mandatoryProxyKeys);
+
+		const mandatorySocat = mandatoryProxy["socat"];
+		assert.isDefined(mandatorySocat);
+		const mandatorySocatImage = mandatorySocat["image"];
+		assert.isString(mandatorySocatImage);
+		assert.equal(mandatorySocatImage, "alpine/socat:1.8.0.1");
+
+		const optionalSocat = mandatoryProxy["?socat"];
+		assert.isDefined(optionalSocat);
+		assert.equal(optionalSocat["image"], "alpine/socat:1.8.0.1");
+	});
+});
+
 describe("FConfigurationValue Tests", function () {
 	let config: FConfiguration;
 

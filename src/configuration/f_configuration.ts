@@ -1,4 +1,4 @@
-import { FExceptionArgument } from "../exception/index.js";
+import { FExceptionArgument, FExceptionInvalidOperation } from "../exception/index.js";
 import { FUtilUnReadonly } from "../util/index.js";
 import { FConfigurationException } from "./f_configuration_exception.js";
 
@@ -104,7 +104,6 @@ export abstract class FConfiguration {
 			Object.freeze(dict)
 		);
 	}
-
 
 	protected static readonly DEFAULT_INDEXES_KEY: string = "indexes";
 	protected static readonly DEFAULT_INDEX_KEY: string = "index";
@@ -320,6 +319,112 @@ export abstract class FConfiguration {
 	 * ```
 	 */
 	public abstract has(key: string): boolean;
+
+	public toDynamicView(): any {
+		function keyWalker(rootObj: any, keys: ReadonlyArray<string>, sourceConfig: FConfiguration, parentObject: any) {
+			const target: any = {};
+			if (rootObj === null) {
+				rootObj = target;
+			}
+			target["$root"] = rootObj;
+	
+			const dottedKeys = new Map();
+			for (const key of keys) {
+				const dotIndex = key.indexOf(".");
+				if (dotIndex === -1) {
+					target[key] = sourceConfig.get(key).asString;
+				} else {
+					const parentKey = key.substring(0, dotIndex);
+					const subKey = key.substring(dotIndex + 1);
+					if (dottedKeys.has(parentKey)) {
+						dottedKeys.get(parentKey).push(subKey);
+					} else {
+						dottedKeys.set(parentKey, [subKey]);
+					}
+				}
+			}
+	
+			for (const [parentKey, subKeys] of dottedKeys.entries()) {
+				const configNamespaceParent = sourceConfig.namespaceParent
+				const isSingle = configNamespaceParent !== null && sourceConfig.keys.length === 1;
+	
+				const inner = keyWalker(rootObj, subKeys, sourceConfig.getNamespace(parentKey), target);
+	
+				target[parentKey] = inner;
+				target[`?${parentKey}`] = inner;
+	
+				const array = Object.keys(inner).filter(key => !key.endsWith("s") && key !== "$parent" && key !== "$root").map(key => {
+					const innerObj = inner[key];
+					if (typeof innerObj === "string" || typeof innerObj === "number" || typeof innerObj === "boolean") {
+						return innerObj;
+					}
+					const wrap = { ...innerObj };
+					Object.defineProperty(wrap, "$parent", {
+						get: function () {
+							return innerObj["$parent"]["$parent"];
+						}
+					});
+					return wrap;
+				});
+	
+				inner["$array"] = array;
+				target[`${parentKey}s`] = array; // DEPRECATED
+				target[`?${parentKey}s`] = array; // DEPRECATED
+	
+				inner["$single"] = function() {
+					if(!isSingle) {
+						throw new Error(`Single constraint violation for property '${parentKey}' in namespace '${configNamespaceParent}'`);
+					}
+					const { "$single": _, ...rest } = inner;
+					return rest;
+				}
+			}
+	
+			if (parentObject !== null) {
+				target["$parent"] = parentObject;
+			}
+	
+			return target;
+		}
+	
+		const objectConfig = keyWalker(null, this.keys, this, null);
+	
+		function makeProxyAdapter(ns: ReadonlyArray<string>, obj: any) {
+			return new Proxy(obj, {
+				get(_, property) {
+					if (typeof property === "string") {
+						let objProperty = property;
+						if (property.startsWith("?")) {
+							objProperty = property.substring(1);
+						}
+						if (objProperty in obj) {
+							const value = obj[objProperty];
+							if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+								return value;
+							} else {
+								return makeProxyAdapter([
+									...ns,
+									property, // yep, we need original property name (with ? prefix for optional) to make Mustache work correctly
+								], value);
+							}
+						}
+	
+						const fullProperty = [...ns, property].join(".");
+						const isOptionalProperty = fullProperty.includes("?");
+						if (!isOptionalProperty) {
+							throw new FExceptionInvalidOperation(`Non-existing property request '${fullProperty}'.`);
+						}
+					}
+
+					return null;
+				},
+			});
+		}
+	
+		const proxyConfig = makeProxyAdapter([], objectConfig);
+	
+		return proxyConfig;
+	}
 }
 
 // import { FConfigurationDictionary } from "./f_configuration_dictionary.js"; // Import here due to cyclic dependencies

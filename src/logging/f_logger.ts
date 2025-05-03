@@ -177,7 +177,7 @@ export abstract class FLoggerBase extends FLogger {
 		messageOrMessageFactory: string | FLoggerMessageFactory,
 		ex?: FException,
 	): void {
-		if(!this.isLevelEnabled(level)) {
+		if (!this.isLevelEnabled(level)) {
 			return;
 		}
 
@@ -305,14 +305,16 @@ export abstract class FLoggerConsole extends FLoggerBaseWithLevel {
 	public static override create(loggerName: string, opts?: {
 		readonly level?: FLoggerLevel,
 		readonly format?: FLoggerConsole.Format;
+		readonly output?: "stdout" | "stderr";
 	}): FLogger {
 		const level: FLoggerLevel = opts !== undefined && opts.level !== undefined ? opts.level : FLoggerLevel.TRACE;
 		const format: FLoggerConsole.Format = opts !== undefined && opts.format !== undefined ? opts.format : "text";
+		const output: "stdout" | "stderr" | null = opts !== undefined && opts.output !== undefined ? opts.output : null;
 
 		if (format === "json") {
-			return new FLoggerConsoleJsonImpl(loggerName, level);
+			return new FLoggerConsoleJsonImpl(loggerName, level, output);
 		} else {
-			return new FLoggerConsoleTextImpl(loggerName, level);
+			return new FLoggerConsoleTextImpl(loggerName, level, output);
 		}
 	}
 }
@@ -323,6 +325,13 @@ export namespace FLoggerConsole {
 
 
 class FLoggerConsoleTextImpl extends FLoggerConsole {
+	private readonly output: "stdout" | "stderr" | null;
+
+	public constructor(loggerName: string, level: FLoggerLevel, output: "stdout" | "stderr" | null) {
+		super(loggerName, level);
+		this.output = output;
+	}
+
 	protected writeToOutput(
 		level: FLoggerLevel,
 		labels: FLoggerLabels,
@@ -343,21 +352,27 @@ class FLoggerConsoleTextImpl extends FLoggerConsole {
 			logMessageBuffer += "\n";
 		}
 
-		switch (level) {
-			case FLoggerLevel.TRACE:
-			case FLoggerLevel.DEBUG:
-				console.debug(logMessageBuffer);
-				break;
-			case FLoggerLevel.INFO:
-				console.log(logMessageBuffer);
-				break;
-			case FLoggerLevel.WARN:
-			case FLoggerLevel.ERROR:
-			case FLoggerLevel.FATAL:
-				console.error(logMessageBuffer);
-				break;
-			default:
-				throw new FExceptionInvalidOperation(`Unsupported log level '${level}'.`);
+		if (this.output === null) {
+			switch (level) {
+				case FLoggerLevel.TRACE:
+				case FLoggerLevel.DEBUG:
+					console.debug(logMessageBuffer);
+					break;
+				case FLoggerLevel.INFO:
+					console.log(logMessageBuffer);
+					break;
+				case FLoggerLevel.WARN:
+				case FLoggerLevel.ERROR:
+				case FLoggerLevel.FATAL:
+					console.error(logMessageBuffer);
+					break;
+				default:
+					throw new FExceptionInvalidOperation(`Unsupported log level '${level}'.`);
+			}
+		} else if (this.output === "stdout") {
+			console.log(logMessageBuffer);
+		} else if (this.output === "stderr") {
+			console.error(logMessageBuffer);
 		}
 	}
 }
@@ -411,6 +426,13 @@ class FLoggerConsoleJsonImpl extends FLoggerBaseWithLevel {
 		return logMessage;
 	}
 
+	private readonly output: "stdout" | "stderr" | null;
+
+	public constructor(loggerName: string, level: FLoggerLevel, output: "stdout" | "stderr" | null) {
+		super(loggerName, level);
+		this.output = output;
+	}
+
 	protected writeToOutput(level: FLoggerLevel, labels: FLoggerLabels, message: string, ex?: FException): void {
 		const logMessage: string = FLoggerConsoleJsonImpl.formatLogMessage(
 			this.name,
@@ -419,19 +441,26 @@ class FLoggerConsoleJsonImpl extends FLoggerBaseWithLevel {
 			message,
 			ex,
 		);
-		switch (level) {
-			case FLoggerLevel.TRACE:
-			case FLoggerLevel.DEBUG:
-				console.debug(logMessage);
-				break;
-			case FLoggerLevel.INFO:
-				console.log(logMessage);
-				break;
-			case FLoggerLevel.WARN:
-			case FLoggerLevel.ERROR:
-			case FLoggerLevel.FATAL:
-				console.error(logMessage);
-				break;
+
+		if (this.output === null) {
+			switch (level) {
+				case FLoggerLevel.TRACE:
+				case FLoggerLevel.DEBUG:
+					console.debug(logMessage);
+					break;
+				case FLoggerLevel.INFO:
+					console.log(logMessage);
+					break;
+				case FLoggerLevel.WARN:
+				case FLoggerLevel.ERROR:
+				case FLoggerLevel.FATAL:
+					console.error(logMessage);
+					break;
+			}
+		} else if (this.output === "stdout") {
+			console.log(logMessage);
+		} else if (this.output === "stderr") {
+			console.error(logMessage);
 		}
 	}
 }

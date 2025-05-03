@@ -353,7 +353,7 @@ export abstract class FConfiguration {
 				target[parentKey] = inner;
 				target[`?${parentKey}`] = inner;
 	
-				const array = Object.keys(inner).filter(key => !key.endsWith("s") && key !== "$parent" && key !== "$root").map(key => {
+				const array = Object.keys(inner).filter(key => !key.startsWith("?") && key !== "$parent" && key !== "$root").map(key => {
 					const innerObj = inner[key];
 					if (typeof innerObj === "string" || typeof innerObj === "number" || typeof innerObj === "boolean") {
 						return innerObj;
@@ -366,11 +366,8 @@ export abstract class FConfiguration {
 					});
 					return wrap;
 				});
-	
 				inner["$array"] = array;
-				target[`${parentKey}s`] = array; // DEPRECATED
-				target[`?${parentKey}s`] = array; // DEPRECATED
-	
+
 				inner["$single"] = function() {
 					if(!isSingle) {
 						throw new Error(`Single constraint violation for property '${parentKey}' in namespace '${configNamespaceParent}'`);

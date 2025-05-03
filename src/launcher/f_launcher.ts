@@ -18,17 +18,17 @@ import {
 	FConfigurationToml,
 } from "../configuration/index.js";
 
-import { FLauncherException } from "./FLauncherException.js";
-import { FLauncherRestartRequiredException } from "./FLauncherRestartRequiredException.js";
+import { FLauncherException } from "./f_launcher_exception.js";
+import { FLauncherRestartRequiredException } from "./f_launcher_restart_required_exception.js";
 
-export function FLauncher(runtimeFactory: FConfiglessRuntimeFactory): void;
+export function flauncher(runtimeFactory: FConfiglessRuntimeFactory): void;
 
 /**
  * Launch an application using `defaultConfigurationLoader`
  * @param configurationParser User's function that provides configuration parser
  * @param runtimeFactory User's function that compose and start runtime
  */
-export function FLauncher<TConfiguration>(
+export function flauncher<TConfiguration>(
 	configurationParser: ConfigurationParser<TConfiguration>,
 	runtimeFactory: FLauncherRuntimeFactory<TConfiguration>
 ): void;
@@ -39,13 +39,13 @@ export function FLauncher<TConfiguration>(
  * @param configurationParser User's function that provides configuration parser
  * @param runtimeFactory User's function that compose and start runtime
  */
-export function FLauncher<TConfiguration>(
+export function flauncher<TConfiguration>(
 	configurationLoader: RawConfigurationLoader,
 	configurationParser: ConfigurationParser<TConfiguration>,
 	runtimeFactory: FLauncherRuntimeFactory<TConfiguration>
 ): void;
 
-export function FLauncher<TConfiguration>(...args: Array<any>): void {
+export function flauncher<TConfiguration>(...args: Array<any>): void {
 	const log: FLogger = FLogger.create("FLauncher");
 
 	const cancellationTokenSource: FCancellationTokenSource =

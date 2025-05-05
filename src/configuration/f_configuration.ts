@@ -320,14 +320,20 @@ export abstract class FConfiguration {
 	 */
 	public abstract has(key: string): boolean;
 
-	public toDynamicView(): any {
+	public toDynamicView(
+		opts: {
+			readonly strict: boolean;
+		} = {
+				strict: true,
+			}
+	): any {
 		function keyWalker(rootObj: any, keys: ReadonlyArray<string>, sourceConfig: FConfiguration, parentObject: any) {
 			const target: any = {};
 			if (rootObj === null) {
 				rootObj = target;
 			}
 			target["$root"] = rootObj;
-	
+
 			const dottedKeys = new Map();
 			for (const key of keys) {
 				const dotIndex = key.indexOf(".");
@@ -343,16 +349,16 @@ export abstract class FConfiguration {
 					}
 				}
 			}
-	
+
 			for (const [parentKey, subKeys] of dottedKeys.entries()) {
 				const configNamespaceParent = sourceConfig.namespaceParent
 				const isSingle = configNamespaceParent !== null && sourceConfig.keys.length === 1;
-	
+
 				const inner = keyWalker(rootObj, subKeys, sourceConfig.getNamespace(parentKey), target);
-	
+
 				target[parentKey] = inner;
 				target[`?${parentKey}`] = inner;
-	
+
 				const array = Object.keys(inner).filter(key => !key.startsWith("?") && key !== "$parent" && key !== "$root").map(key => {
 					const innerObj = inner[key];
 					if (typeof innerObj === "string" || typeof innerObj === "number" || typeof innerObj === "boolean") {
@@ -368,24 +374,24 @@ export abstract class FConfiguration {
 				});
 				inner["$array"] = array;
 
-				inner["$single"] = function() {
-					if(!isSingle) {
+				inner["$single"] = function () {
+					if (!isSingle) {
 						throw new Error(`Single constraint violation for property '${parentKey}' in namespace '${configNamespaceParent}'`);
 					}
 					const { "$single": _, ...rest } = inner;
 					return rest;
 				}
 			}
-	
+
 			if (parentObject !== null) {
 				target["$parent"] = parentObject;
 			}
-	
+
 			return target;
 		}
-	
+
 		const objectConfig = keyWalker(null, this.keys, this, null);
-	
+
 		function makeProxyAdapter(ns: ReadonlyArray<string>, obj: any) {
 			return new Proxy(obj, {
 				get(_, property) {
@@ -405,11 +411,15 @@ export abstract class FConfiguration {
 								], value);
 							}
 						}
-	
+
 						const fullProperty = [...ns, property].join(".");
 						const isOptionalProperty = fullProperty.includes("?");
 						if (!isOptionalProperty) {
-							throw new FExceptionInvalidOperation(`Non-existing property request '${fullProperty}'.`);
+							if (opts.strict) {
+								throw new FExceptionInvalidOperation(`Non-existing property request '${fullProperty}'.`);
+							} else {
+								return null;
+							}
 						}
 					}
 
@@ -417,9 +427,9 @@ export abstract class FConfiguration {
 				},
 			});
 		}
-	
+
 		const proxyConfig = makeProxyAdapter([], objectConfig);
-	
+
 		return proxyConfig;
 	}
 }

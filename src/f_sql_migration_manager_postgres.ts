@@ -26,7 +26,7 @@ export class FSqlMigrationManagerPostgres extends FSqlMigrationManager {
 			await this._verifyVersionTableStructure(executionContext, sqlConnection);
 
 			const versionData = await sqlConnection.statement(
-				`SELECT "version" FROM "${this.versionTableName}" ORDER BY "version" DESC LIMIT 1`
+				`SELECT "version" FROM "${this._schema}"."${this.versionTableName}" ORDER BY "version" DESC LIMIT 1`
 			).executeScalarOrNull(executionContext);
 
 			if (versionData === null) {
@@ -46,7 +46,7 @@ export class FSqlMigrationManagerPostgres extends FSqlMigrationManager {
 			await this._verifyVersionTableStructure(executionContext, sqlConnection);
 
 			const versionRows: ReadonlyArray<FSqlResultRecord> = await sqlConnection
-				.statement(`SELECT "version" FROM "${this.versionTableName}" ORDER BY "version" DESC`)
+				.statement(`SELECT "version" FROM "${this._schema}"."${this.versionTableName}" ORDER BY "version" DESC`)
 				.executeQuery(executionContext);
 
 				return versionRows.map(versionRow => versionRow.get("version").asString);
@@ -73,7 +73,7 @@ export class FSqlMigrationManagerPostgres extends FSqlMigrationManager {
 		}
 
 		await sqlProvider.statement(`
-			CREATE TABLE "${this.versionTableName}" (
+			CREATE TABLE "${this._schema}"."${this.versionTableName}" (
 				"id" SMALLSERIAL NOT NULL PRIMARY KEY,
 				"version" VARCHAR(64) NOT NULL UNIQUE,
 				"utc_deployed_at" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT(now() AT TIME ZONE 'utc'),
@@ -82,7 +82,7 @@ export class FSqlMigrationManagerPostgres extends FSqlMigrationManager {
 		`).execute(executionContext);
 
 		await sqlProvider.statement(`
-			CREATE TABLE "${this.versionTableName}_rollback_script" (
+			CREATE TABLE "${this._schema}"."${this.versionTableName}_rollback_script" (
 				"id" SMALLSERIAL NOT NULL PRIMARY KEY,
 				"version_id" SMALLINT NOT NULL,
 				"name" VARCHAR(256) NOT NULL,
@@ -91,7 +91,7 @@ export class FSqlMigrationManagerPostgres extends FSqlMigrationManager {
 				"content" TEXT NOT NULL,
 				CONSTRAINT "fk__${this.versionTableName}_rollback_script__${this.versionTableName}"
 					FOREIGN KEY ("version_id")
-					REFERENCES "${this.versionTableName}" ("id")
+					REFERENCES "${this._schema}"."${this.versionTableName}" ("id")
 			)
 		`).execute(executionContext);
 	}
@@ -104,7 +104,7 @@ export class FSqlMigrationManagerPostgres extends FSqlMigrationManager {
 	): Promise<void> {
 		for (const script of scripts) {
 			await sqlConnection.statement(`
-				INSERT INTO "${this.versionTableName}_rollback_script" (
+				INSERT INTO "${this._schema}"."${this.versionTableName}_rollback_script" (
 					"version_id",
 					"name",
 					"kind",
@@ -137,7 +137,7 @@ export class FSqlMigrationManagerPostgres extends FSqlMigrationManager {
 		executionContext: FExecutionContext, sqlConnection: FSqlConnection, version: string, logText: string
 	): Promise<void> {
 		await sqlConnection.statement(
-			`INSERT INTO "${this.versionTableName}"("version", "log") VALUES($1, $2)`
+			`INSERT INTO "${this._schema}"."${this.versionTableName}"("version", "log") VALUES($1, $2)`
 		).execute(executionContext, version, logText);
 	}
 
@@ -216,11 +216,10 @@ export class FSqlMigrationManagerPostgres extends FSqlMigrationManager {
 
 	protected async _verifyVersionTableStructure(executionContext: FExecutionContext, sqlConnection: FSqlConnection): Promise<void> {
 		const isExist = await this._isVersionTableExist(executionContext, sqlConnection);
-		if (isExist === false) { throw new FSqlMigrationManager.MigrationException(`The database does not have version table: ${this.versionTableName}`); }
+		if (isExist === false) { throw new FSqlMigrationManager.MigrationException(`The database does not have version table: "${this._schema}"."${this.versionTableName}"`); }
 
 		// TODO check columns
-		// It is hard to check without schema name
-		// SELECT * FROM information_schema.columns WHERE table_schema = '????' AND table_name = '${this.versionTableName}'
+		// SELECT * FROM information_schema.columns WHERE table_schema = '${this._schema}' AND table_name = '${this.versionTableName}'
 	}
 
 	protected override async _listVersions(executionContext: FExecutionContext, sqlConnection: FSqlConnection): Promise<Array<string>> {

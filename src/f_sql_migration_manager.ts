@@ -337,7 +337,7 @@ export namespace FSqlMigrationManager {
 			return this._lines.splice(0).join(EOL);
 		}
 
-		public override writeLog(
+		public override writeToOutput(
 			level: FLoggerLevel,
 			labels: FLoggerLabels,
 			message: string,
@@ -357,7 +357,7 @@ export namespace FSqlMigrationManager {
 		}
 
 		protected override isLevelEnabled(_level: FLoggerLevel): boolean {
-			return true;
+			return true; // this produce [TRACE] logs
 		}
 	}
 }

@@ -23,7 +23,8 @@ import {
 	FSqlConnectionFactory,
 	FCancellationExecutionContext,
 	FCancellationException,
-	FLoggerLabelsExecutionContext
+	FLoggerLabelsExecutionContext,
+	FLoggerLabel
 } from "@freemework/common";
 
 import pg from "pg";
@@ -246,6 +247,12 @@ pg.types.setTypeParser(PostgresObjectID.timestamp as any, function (stringValue)
 	return stringValue;
 });
 
+export class FSqlConnectionFactoryPostgresLoggerLabel extends FLoggerLabel {
+	public static readonly CONNECTION_NUMBER = new FSqlConnectionFactoryPostgresLoggerLabel("sql.postgres.connection", "Describes a number (counter) of connection");
+	public static readonly HOST = new FSqlConnectionFactoryPostgresLoggerLabel("sql.postgres.host", "PostgreSQL server hostname/IP");
+	public static readonly PORT = new FSqlConnectionFactoryPostgresLoggerLabel("sql.postgres.port", "PostgreSQL server port");
+	public static readonly DATABASE = new FSqlConnectionFactoryPostgresLoggerLabel("sql.postgres.db", "Name of a database");
+}
 
 export class FSqlConnectionFactoryPostgres extends FInitableBase implements FSqlConnectionFactory {
 	public readonly loggingSqlLabels: boolean;
@@ -402,11 +409,9 @@ export class FSqlConnectionFactoryPostgres extends FInitableBase implements FSql
 		if (this.loggingSqlLabels) {
 			executionContext = new FLoggerLabelsExecutionContext(
 				executionContext,
-				{
-					"sql.postgres.host": this._url.hostname,
-					"sql.postgres.port": this._url.port,
-					"sql.postgres.db": this._databaseName,
-				}
+				FSqlConnectionFactoryPostgresLoggerLabel.HOST.value(this._url.hostname),
+				FSqlConnectionFactoryPostgresLoggerLabel.PORT.value(this._url.port),
+				FSqlConnectionFactoryPostgresLoggerLabel.DATABASE.value(this._databaseName),
 			);
 		}
 		return executionContext;
@@ -423,11 +428,8 @@ export class FSqlConnectionFactoryPostgres extends FInitableBase implements FSql
 			const sqlConnection: FSqlConnection = await this.create(connectionInitExecutionContext);
 
 			const workerExecutionContext: FExecutionContext = this.loggingSqlLabels
-				? new FLoggerLabelsExecutionContext(
-					connectionInitExecutionContext,
-					{
-						"sql.postgres.connection": (sqlConnection as FSqlConnectionPostgres).connectionNumber.toString()
-					}
+				? new FLoggerLabelsExecutionContext(connectionInitExecutionContext,
+					FSqlConnectionFactoryPostgresLoggerLabel.CONNECTION_NUMBER.value((sqlConnection as FSqlConnectionPostgres).connectionNumber.toString()),
 				)
 				: connectionInitExecutionContext;
 
@@ -465,11 +467,8 @@ export class FSqlConnectionFactoryPostgres extends FInitableBase implements FSql
 			await sqlConnection.statement("BEGIN TRANSACTION").execute(executionContext);
 			try {
 				const workerExecutionContext: FExecutionContext = this.loggingSqlLabels
-					? new FLoggerLabelsExecutionContext(
-						connectionInitExecutionContext,
-						{
-							"sql.postgres.connection": (sqlConnection as FSqlConnectionPostgres).connectionNumber.toString()
-						}
+					? new FLoggerLabelsExecutionContext(connectionInitExecutionContext,
+						FSqlConnectionFactoryPostgresLoggerLabel.CONNECTION_NUMBER.value((sqlConnection as FSqlConnectionPostgres).connectionNumber.toString()),
 					)
 					: connectionInitExecutionContext;
 
@@ -600,9 +599,7 @@ class FSqlConnectionPostgres extends FDisposableBase implements FSqlConnection {
 		this._initExecutionContext = this._factory.loggingSqlLabels
 			? new FLoggerLabelsExecutionContext(
 				executionContext,
-				{
-					"sql.postgres.connection": this.connectionNumber.toString()
-				}
+				FSqlConnectionFactoryPostgresLoggerLabel.CONNECTION_NUMBER.value(this.connectionNumber.toString()),
 			)
 			: executionContext;
 

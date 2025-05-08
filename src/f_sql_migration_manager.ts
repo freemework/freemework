@@ -11,10 +11,17 @@ import {
 	FLoggerLabelsExecutionContext,
 	FLoggerLevel,
 	FLoggerBase,
-	FLoggerLabels,
+	FLoggerLabel,
+	FLoggerLabelValue,
 } from "@freemework/common";
 
 import { FSqlMigrationSources } from "./f_sql_migration_sources.js";
+
+export class FSqlMigrationManagerLoggerLabel extends FLoggerLabel {
+	public static readonly DIRECTION = new FSqlMigrationManagerLoggerLabel("migration.direction", "Describes a direction of migration process (install/rollback)");
+	public static readonly SCRIPT = new FSqlMigrationManagerLoggerLabel("migration.script", "Describes a name of migration script");
+	public static readonly VERSION = new FSqlMigrationManagerLoggerLabel("migration.version", "Describes a version of migration atom");
+}
 
 export abstract class FSqlMigrationManager {
 	private readonly _sqlConnectionFactory: FSqlConnectionFactory;
@@ -33,9 +40,9 @@ export abstract class FSqlMigrationManager {
 	 * @param targetVersion Optional target version. Will use latest version if omitted.
 	 */
 	public async install(executionContext: FExecutionContext, migrationSources: FSqlMigrationSources, targetVersion?: string): Promise<void> {
-		executionContext = new FLoggerLabelsExecutionContext(executionContext, {
-			"direction": "install"
-		});
+		executionContext = new FLoggerLabelsExecutionContext(executionContext,
+			FSqlMigrationManagerLoggerLabel.DIRECTION.value("install"),
+		);
 
 		const currentVersion: string | null = await this.getCurrentVersion(executionContext);
 		const availableVersions: Array<string> = [...migrationSources.versionNames].sort(); // from old version to new version
@@ -65,18 +72,18 @@ export abstract class FSqlMigrationManager {
 
 		for (const versionName of scheduleVersions) {
 			await this.sqlConnectionFactory.usingConnectionWithTransaction(
-				new FLoggerLabelsExecutionContext(executionContext, {
-					"version": versionName
-				}),
+				new FLoggerLabelsExecutionContext(executionContext,
+					FSqlMigrationManagerLoggerLabel.VERSION.value(versionName),
+				),
 				async (usingExecutionContext: FExecutionContext, sqlConnection: FSqlConnection) => {
 					const migrationLogger = new FSqlMigrationManager.MigrationLogger(this.logger);
 
 					const versionBundle: FSqlMigrationSources.VersionBundle = migrationSources.getVersionBundle(versionName);
 					const installScriptNames: Array<string> = [...versionBundle.installScriptNames].sort();
 					for (const scriptName of installScriptNames) {
-						const scriptExecutionContext = new FLoggerLabelsExecutionContext(usingExecutionContext, {
-							"script": scriptName
-						});
+						const scriptExecutionContext = new FLoggerLabelsExecutionContext(usingExecutionContext,
+							FSqlMigrationManagerLoggerLabel.SCRIPT.value(scriptName),
+						);
 
 						const script: FSqlMigrationSources.Script = versionBundle.getInstallScript(scriptName);
 						switch (script.kind) {
@@ -119,9 +126,9 @@ export abstract class FSqlMigrationManager {
 	 * @param targetVersion Optional target version. Will rollback all versions if omitted.
 	 */
 	public async rollback(executionContext: FExecutionContext, targetVersion?: string): Promise<void> {
-		executionContext = new FLoggerLabelsExecutionContext(executionContext, {
-			"direction": "rollback"
-		});
+		executionContext = new FLoggerLabelsExecutionContext(executionContext,
+			FSqlMigrationManagerLoggerLabel.DIRECTION.value("rollback"),
+		);
 
 		const currentVersion: string | null = await this.getCurrentVersion(executionContext);
 		if (currentVersion === null) {
@@ -152,9 +159,9 @@ export abstract class FSqlMigrationManager {
 
 		for (const versionName of scheduleVersionNames) {
 			await this.sqlConnectionFactory.usingConnectionWithTransaction(
-				new FLoggerLabelsExecutionContext(executionContext, {
-					"version": versionName
-				}),
+				new FLoggerLabelsExecutionContext(executionContext,
+					FSqlMigrationManagerLoggerLabel.VERSION.value(versionName),
+				),
 				async (usingExecutionContext: FExecutionContext, sqlConnection: FSqlConnection) => {
 					if (! await this._isVersionLogExist(usingExecutionContext, sqlConnection, versionName)) {
 						this.logger.warn(executionContext, `Skip rollback for version '${versionName}' due this does not present inside database.`);
@@ -166,9 +173,9 @@ export abstract class FSqlMigrationManager {
 					const rollbackScriptNames: Array<string> = [...scripts.map(s => s.name)].sort().reverse();
 					const scriptsMap: Map<string, FSqlMigrationSources.Script> = scripts.reduce((acc, curr) => { acc.set(curr.name, curr); return acc }, new Map<string, FSqlMigrationSources.Script>());
 					for (const scriptName of rollbackScriptNames) {
-						const scriptExecutionContext = new FLoggerLabelsExecutionContext(usingExecutionContext, {
-							"script": scriptName
-						});
+						const scriptExecutionContext = new FLoggerLabelsExecutionContext(usingExecutionContext,
+							FSqlMigrationManagerLoggerLabel.SCRIPT.value(scriptName),
+						);
 
 						const script: FSqlMigrationSources.Script = scriptsMap.get(scriptName)!;
 						switch (script.kind) {
@@ -339,7 +346,7 @@ export namespace FSqlMigrationManager {
 
 		public override writeToOutput(
 			level: FLoggerLevel,
-			labels: FLoggerLabels,
+			labelValues: ReadonlyArray<FLoggerLabelValue>,
 			message: string,
 			ex?: FException,
 		): void {
@@ -352,7 +359,7 @@ export namespace FSqlMigrationManager {
 				case FLoggerLevel.FATAL: levelTxt = "[FATAL]"; break;
 				default: levelTxt = "[TRACE]"; break;
 			}
-			this._wrap.log(labels, level, message, ex);
+			this._wrap.log(labelValues, level, message, ex);
 			this._lines.push(`${levelTxt} ${message}`);
 		}
 

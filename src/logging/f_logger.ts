@@ -4,7 +4,7 @@ import { FExceptionInvalidOperation } from "../exception/f_exception_invalid_ope
 import { FLoggerLevel } from "./f_logger_level.js";
 
 import { FExecutionContext } from "../execution_context/f_execution_context.js";
-import { FLoggerLabels } from "./f_logger_labels.js";
+import { FLoggerLabelValue } from "./f_logger_labels.js";
 import { FUtilUnReadonly } from "../util/index.js";
 import { FLoggerLabelsExecutionContext } from "./f_logger_labels_execution_context.js";
 
@@ -68,7 +68,7 @@ export abstract class FLogger {
 	public abstract fatal(executionContext: FExecutionContext, messageFactory: FLoggerMessageFactory): void;
 
 	public abstract log(
-		executionContextOrLabels: FExecutionContext | FLoggerLabels,
+		executionContextOrLabels: FExecutionContext | ReadonlyArray<FLoggerLabelValue>,
 		level: FLoggerLevel,
 		messageOrMessageFactory: string | FLoggerMessageFactory,
 		ex?: FException,
@@ -86,7 +86,7 @@ export abstract class FLoggerBase extends FLogger {
 	public override get name(): string { return this._name; }
 
 	public override trace(
-		variant: FExecutionContext | FLoggerLabels,
+		variant: FExecutionContext | ReadonlyArray<FLoggerLabelValue>,
 		messageOrMessageFactory: string | FLoggerMessageFactory,
 		ex?: FException,
 	): void {
@@ -94,14 +94,14 @@ export abstract class FLoggerBase extends FLogger {
 			return;
 		}
 
-		const loggerLabels: FLoggerLabels = FLoggerBase._resolveLoggerLabels(variant);
+		const loggerLabels: ReadonlyArray<FLoggerLabelValue> = FLoggerBase._resolveLoggerLabels(variant);
 		const message: string = FLoggerBase._resolveMessage(messageOrMessageFactory);
 
 		this.writeToOutput(FLoggerLevel.TRACE, loggerLabels, message, ex);
 	}
 
 	public override debug(
-		variant: FExecutionContext | FLoggerLabels,
+		variant: FExecutionContext | ReadonlyArray<FLoggerLabelValue>,
 		messageOrMessageFactory: string | FLoggerMessageFactory,
 		ex?: FException,
 	): void {
@@ -109,70 +109,70 @@ export abstract class FLoggerBase extends FLogger {
 			return;
 		}
 
-		const loggerLabels: FLoggerLabels =
+		const loggerLabels: ReadonlyArray<FLoggerLabelValue> =
 			FLoggerBase._resolveLoggerLabels(variant);
 		const message: string = FLoggerBase._resolveMessage(messageOrMessageFactory);
 		this.writeToOutput(FLoggerLevel.DEBUG, loggerLabels, message, ex);
 	}
 
 	public override info(
-		variant: FExecutionContext | FLoggerLabels,
+		variant: FExecutionContext | ReadonlyArray<FLoggerLabelValue>,
 		messageOrMessageFactory: string | FLoggerMessageFactory,
 	): void {
 		if (!this.isInfoEnabled) {
 			return;
 		}
 
-		const loggerLabels: FLoggerLabels =
+		const loggerLabels: ReadonlyArray<FLoggerLabelValue> =
 			FLoggerBase._resolveLoggerLabels(variant);
 		const message: string = FLoggerBase._resolveMessage(messageOrMessageFactory);
 		this.writeToOutput(FLoggerLevel.INFO, loggerLabels, message);
 	}
 
 	public override warn(
-		variant: FExecutionContext | FLoggerLabels,
+		variant: FExecutionContext | ReadonlyArray<FLoggerLabelValue>,
 		messageOrMessageFactory: string | FLoggerMessageFactory,
 	): void {
 		if (!this.isWarnEnabled) {
 			return;
 		}
 
-		const loggerLabels: FLoggerLabels =
+		const loggerLabels: ReadonlyArray<FLoggerLabelValue> =
 			FLoggerBase._resolveLoggerLabels(variant);
 		const message: string = FLoggerBase._resolveMessage(messageOrMessageFactory);
 		this.writeToOutput(FLoggerLevel.WARN, loggerLabels, message);
 	}
 
 	public override error(
-		variant: FExecutionContext | FLoggerLabels,
+		variant: FExecutionContext | ReadonlyArray<FLoggerLabelValue>,
 		messageOrMessageFactory: string | FLoggerMessageFactory,
 	): void {
 		if (!this.isErrorEnabled) {
 			return;
 		}
 
-		const loggerLabels: FLoggerLabels =
+		const loggerLabels: ReadonlyArray<FLoggerLabelValue> =
 			FLoggerBase._resolveLoggerLabels(variant);
 		const message: string = FLoggerBase._resolveMessage(messageOrMessageFactory);
 		this.writeToOutput(FLoggerLevel.ERROR, loggerLabels, message);
 	}
 
 	public override fatal(
-		variant: FExecutionContext | FLoggerLabels,
+		variant: FExecutionContext | ReadonlyArray<FLoggerLabelValue>,
 		messageOrMessageFactory: string | FLoggerMessageFactory,
 	): void {
 		if (!this.isFatalEnabled) {
 			return;
 		}
 
-		const loggerLabels: FLoggerLabels =
+		const loggerLabels: ReadonlyArray<FLoggerLabelValue> =
 			FLoggerBase._resolveLoggerLabels(variant);
 		const message: string = FLoggerBase._resolveMessage(messageOrMessageFactory);
 		this.writeToOutput(FLoggerLevel.FATAL, loggerLabels, message);
 	}
 
 	public override log(
-		executionContextOrLabels: FExecutionContext | FLoggerLabels,
+		executionContextOrLabels: FExecutionContext | ReadonlyArray<FLoggerLabelValue>,
 		level: FLoggerLevel,
 		messageOrMessageFactory: string | FLoggerMessageFactory,
 		ex?: FException,
@@ -181,7 +181,7 @@ export abstract class FLoggerBase extends FLogger {
 			return;
 		}
 
-		const loggerLabels: FLoggerLabels =
+		const loggerLabels: ReadonlyArray<FLoggerLabelValue> =
 			FLoggerBase._resolveLoggerLabels(executionContextOrLabels);
 		const message: string = FLoggerBase._resolveMessage(messageOrMessageFactory);
 		this.writeToOutput(level, loggerLabels, message, ex);
@@ -202,7 +202,7 @@ export abstract class FLoggerBase extends FLogger {
 	 */
 	protected abstract writeToOutput(
 		level: FLoggerLevel,
-		labels: FLoggerLabels,
+		labelValues: ReadonlyArray<FLoggerLabelValue>,
 		message: string,
 		ex?: FException,
 	): void;
@@ -210,19 +210,19 @@ export abstract class FLoggerBase extends FLogger {
 	private readonly _name: string;
 
 	public static _resolveLoggerLabels(
-		variant: FExecutionContext | FLoggerLabels,
-	): FLoggerLabels {
+		variant: FExecutionContext | ReadonlyArray<FLoggerLabelValue>,
+	): ReadonlyArray<FLoggerLabelValue> {
 		if (variant === null || variant === undefined) {
 			// Sometime users pass undefined/null value.
 			// It is contract violation, but not a reason to crash in logger
-			return FLoggerBase._emptyLabels;
+			return FLoggerBase._emptyLabelValues;
 		} else if (variant instanceof FExecutionContext) {
 			const executionElement = FLoggerLabelsExecutionContext
 				.of(variant);
 			if (executionElement !== null) {
-				return Object.freeze({ ...executionElement.loggerLabels });
+				return executionElement.loggerLabelValues;
 			} else {
-				return FLoggerBase._emptyLabels; // No any logger properties on excecution context chain
+				return FLoggerBase._emptyLabelValues; // No any logger properties on execution context chain
 			}
 		} else {
 			return variant;
@@ -248,7 +248,7 @@ export abstract class FLoggerBase extends FLogger {
 		return messageOrMessageFactory;
 	}
 
-	private static readonly _emptyLabels: FLoggerLabels = Object.freeze({});
+	private static readonly _emptyLabelValues: ReadonlyArray<FLoggerLabelValue> = Object.freeze([]);
 }
 
 
@@ -334,13 +334,13 @@ class FLoggerConsoleTextImpl extends FLoggerConsole {
 
 	protected writeToOutput(
 		level: FLoggerLevel,
-		labels: FLoggerLabels,
+		labelValues: ReadonlyArray<FLoggerLabelValue>,
 		message: string,
 		ex?: FException
 	): void {
 		let logMessageBuffer = `${new Date().toISOString()} ${this.name} [${level}]`;
-		for (const [labelName, labelValue] of Object.entries(labels)) {
-			logMessageBuffer += `(${labelName}:${labelValue})`;
+		for (const { name, value } of labelValues) {
+			logMessageBuffer += `(${name}:${value})`;
 		}
 
 		logMessageBuffer += (" ");
@@ -393,7 +393,7 @@ class FLoggerConsoleJsonImpl extends FLoggerBaseWithLevel {
 	public static formatLogMessage(
 		loggerName: string,
 		level: FLoggerLevel,
-		labels: FLoggerLabels,
+		labelValues: ReadonlyArray<FLoggerLabelValue>,
 		message: string,
 		ex?: FException | null,
 	): string {
@@ -404,8 +404,8 @@ class FLoggerConsoleJsonImpl extends FLoggerBaseWithLevel {
 		};
 
 		const labelsObj: Record<string, string> = {};
-		for (const [labelName, labelValue] of Object.entries(labels)) {
-			labelsObj[`label.${labelName}`] = labelValue;
+		for (const { name, value } of labelValues) {
+			labelsObj[`label.${name}`] = value;
 		}
 
 		const logEntry: FUtilUnReadonly<FLoggerConsoleJsonLogEntry> = {
@@ -433,11 +433,16 @@ class FLoggerConsoleJsonImpl extends FLoggerBaseWithLevel {
 		this.output = output;
 	}
 
-	protected writeToOutput(level: FLoggerLevel, labels: FLoggerLabels, message: string, ex?: FException): void {
+	protected writeToOutput(
+		level: FLoggerLevel,
+		labelValues: ReadonlyArray<FLoggerLabelValue>,
+		message: string,
+		ex?: FException,
+	): void {
 		const logMessage: string = FLoggerConsoleJsonImpl.formatLogMessage(
 			this.name,
 			level,
-			labels,
+			labelValues,
 			message,
 			ex,
 		);

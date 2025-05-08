@@ -1,10 +1,9 @@
 import { FExecutionContext, FExecutionElement, FExecutionContextBase } from "../execution_context/f_execution_context.js";
 
-import { FLoggerLabels } from "../logging/f_logger_labels.js";
-
+import { FLoggerLabel, FLoggerLabelValue } from "../logging/f_logger_labels.js";
 
 export class FLoggerLabelsExecutionContext extends FExecutionContextBase {
-	private readonly _loggerLabels: FLoggerLabels;
+	private readonly _loggerLabelValues: ReadonlyArray<FLoggerLabelValue>;
 
 	public static of(
 		executionContext: FExecutionContext
@@ -31,13 +30,15 @@ export class FLoggerLabelsExecutionContext extends FExecutionContextBase {
 		return new FLoggerLabelsExecutionElement(loggerCtx, chain);
 	}
 
-	public get loggerLabels(): FLoggerLabels { return this._loggerLabels; }
+	// TODO: make true-readonly set
+	public get loggerLabelValues(): ReadonlyArray<FLoggerLabelValue> { return this._loggerLabelValues; }
 
 	public constructor(
-		prevContext: FExecutionContext, loggerLabels?: FLoggerLabels
+		prevContext: FExecutionContext,
+		...loggerLabelValues: Array<FLoggerLabelValue>
 	) {
 		super(prevContext);
-		this._loggerLabels = Object.freeze({ ...loggerLabels });
+		this._loggerLabelValues = Object.freeze([...loggerLabelValues]);
 	}
 }
 export class FLoggerLabelsExecutionElement<
@@ -53,16 +54,19 @@ export class FLoggerLabelsExecutionElement<
 		this.chain = chain;
 	}
 
-	public get loggerLabels(): FLoggerLabels {
+	public get loggerLabelValues(): ReadonlyArray<FLoggerLabelValue> {
 		// using reduceRight to take priority for first property in chain.
 		const dict = this.chain.reduceRight((p, c) => {
-			Object.entries(c.loggerLabels).forEach(([name, value]) => {
-				if (!p.has(name)) {
-					p.set(name, value);
+			c.loggerLabelValues.forEach((lv) => {
+
+				if (!p.has(lv.label)) {
+					p.set(lv.label, lv);
 				}
 			});
 			return p;
-		}, new Map<string, string>);
-		return Object.freeze(Object.fromEntries(dict));
+		}, new Map<FLoggerLabel, FLoggerLabelValue>);
+
+		// TODO: make true-readonly set
+		return [...dict.values()];
 	}
 }

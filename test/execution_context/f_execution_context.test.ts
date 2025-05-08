@@ -4,9 +4,17 @@ import {
 	FExecutionContext, FExecutionContextBase,
 	FLoggerLabelsExecutionContext,
 	FLoggerLabelsExecutionElement,
+	FLoggerLabel,
 } from "../../src/index.js";
 
 import { assert } from "chai";
+
+class MyLoggerLabel extends FLoggerLabel {
+	public static readonly LABEL1 = new MyLoggerLabel("test.label1", "Label for unit tests");
+	public static readonly LABEL2 = new MyLoggerLabel("test.label2", "Label for unit tests");
+	// ...
+}
+
 
 describe("FExecutionContext test", function () {
 	it("Empty execution context should NOT have prevContext", function () {
@@ -52,25 +60,38 @@ describe("FExecutionContext test", function () {
 
 	it("Logger execution context should be resolved on head of chain", function () {
 		const emptyCtx: FExecutionContext = FExecutionContext.Empty;
-		const loggerCtx: FExecutionContext = new FLoggerLabelsExecutionContext(emptyCtx, { name: "test", value: "42" });
+		const loggerCtx: FExecutionContext = new FLoggerLabelsExecutionContext(emptyCtx,
+			MyLoggerLabel.LABEL1.value("test"),
+			MyLoggerLabel.LABEL2.value("42"),
+		);
 
 		const element: FLoggerLabelsExecutionElement = FLoggerLabelsExecutionContext.of(loggerCtx)!;
 		assert.isNotNull(element);
 		assert.strictEqual(element.owner, loggerCtx);
-		assert.strictEqual(element.loggerLabels["name"], "test");
-		assert.strictEqual(element.loggerLabels["value"], "42");
+		assert.strictEqual(element.loggerLabelValues.length, 2);
+		assert.strictEqual(element.loggerLabelValues.find(w => w.label === MyLoggerLabel.LABEL1)!.value, "test");
+		assert.strictEqual(element.loggerLabelValues.find(w => w.label === MyLoggerLabel.LABEL2)!.value, "42");
 	});
 
 	it("Logger execution context should be resolved on chain", function () {
 		const emptyCtx: FExecutionContext = FExecutionContext.Empty;
-		const loggerCtx1: FExecutionContext = new FLoggerLabelsExecutionContext(emptyCtx, { name: "test", value: "42" });
-		const loggerCtx2: FExecutionContext = new FLoggerLabelsExecutionContext(loggerCtx1, { name: "test", value: "43" });
+		const loggerCtx1: FExecutionContext = new FLoggerLabelsExecutionContext(emptyCtx,
+			MyLoggerLabel.LABEL1.value("test"),
+			MyLoggerLabel.LABEL2.value("42"),
+		);
+		const loggerCtx2: FExecutionContext = new FLoggerLabelsExecutionContext(loggerCtx1,
+			MyLoggerLabel.LABEL1.value("test"),
+			MyLoggerLabel.LABEL2.value("43"),
+		);
 		const stubCtx = new StubExecutionContext(loggerCtx2);
 
 		const element: FLoggerLabelsExecutionElement = FLoggerLabelsExecutionContext.of(stubCtx)!;
 		assert.isNotNull(element);
 		assert.strictEqual(element.owner, loggerCtx2);
-		assert.deepEqual({ ...element.loggerLabels }, { name: "test", value: "42" });
+
+		assert.strictEqual(element.loggerLabelValues.length, 2);
+		assert.strictEqual(element.loggerLabelValues.find(w => w.label === MyLoggerLabel.LABEL1)!.value, "test");
+		assert.strictEqual(element.loggerLabelValues.find(w => w.label === MyLoggerLabel.LABEL2)!.value, "42");
 	});
 });
 

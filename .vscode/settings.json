@@ -36,6 +36,7 @@
 		"devel",
 		"freemework",
 		"Initable",
-		"lcov"
+		"lcov",
+		"Middlewarable"
 	]
 }

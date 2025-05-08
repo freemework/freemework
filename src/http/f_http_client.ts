@@ -9,7 +9,13 @@ import { FCancellationExecutionContext, FCancellationException, FCancellationTok
 import { FChannelInvoke } from "../channel/index.js";
 import { FException, FExceptionInvalidOperation, FExceptionNativeErrorWrapper } from "../exception/index.js";
 import { FExecutionContext } from "../execution_context/index.js";
-import { FLogger, FLoggerLabelsExecutionContext, FLoggerLevel } from "../logging/index.js";
+import { FLogger, FLoggerLabel, FLoggerLabelsExecutionContext, FLoggerLevel } from "../logging/index.js";
+
+export class FHttpClientLoggerLabel extends FLoggerLabel {
+    public static readonly URL = new FHttpClientLoggerLabel("out.http.url", "Describes HTTP URL of output request");
+    public static readonly METHOD = new FHttpClientLoggerLabel("out.http.method", "Describes HTTP method of output request (like a GET, POST, etc.)");
+    // ...
+}
 
 export class FHttpClient implements FHttpClient.HttpInvokeChannel {
 	private readonly _log: FLogger;
@@ -33,10 +39,8 @@ export class FHttpClient implements FHttpClient.HttpInvokeChannel {
 	): Promise<FHttpClient.Response> {
 		executionContext = new FLoggerLabelsExecutionContext(
 			executionContext,
-			{
-				httpInvokeUrl: url.toString(),
-				httpInvokeMethod: method
-			},
+			FHttpClientLoggerLabel.METHOD.value(method),
+			FHttpClientLoggerLabel.URL.value(url.toString()),
 		);
 
 		this._log.trace(executionContext, "Begin invoke");

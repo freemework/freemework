@@ -14,7 +14,7 @@ export * from "./limit/index.js";
 export * from "./logging/index.js";
 export * from "./primitive/index.js";
 export * from "./sql/index.js";
-export * from "./util/index.js";
+export * from "./index.js";
 
 export { FEnsure, FEnsureException } from "./f_ensure.js";
 export { FModuleVersionGuard } from "./f_module_version_guard.js";

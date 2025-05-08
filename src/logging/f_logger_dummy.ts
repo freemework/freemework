@@ -1,7 +1,7 @@
 import { FException } from "../exception/f_exception.js";
 
 import { FLogger, FLoggerBase } from "./f_logger.js";
-import { FLoggerLabels } from "./f_logger_labels.js";
+import { FLoggerLabelValue } from "./f_logger_labels.js";
 import { FLoggerLevel } from "./f_logger_level.js";
 
 export class FLoggerDummy extends FLoggerBase {
@@ -21,7 +21,7 @@ export class FLoggerDummy extends FLoggerBase {
 	}
 
 	protected isLevelEnabled(_: FLoggerLevel): boolean { return false; }
-	protected writeToOutput(_: FLoggerLevel, __: FLoggerLabels, ___: string, ____?: FException): void { }
+	protected writeToOutput(_: FLoggerLevel, __: ReadonlyArray<FLoggerLabelValue>, ___: string, ____?: FException): void { }
 
 	private constructor(loggerName: string) { super(loggerName); }
 }

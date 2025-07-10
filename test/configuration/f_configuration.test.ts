@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import Mustache from "mustache";
 
 import { FConfiguration, FConfigurationException, FConfigurationValue } from "../../src/index.js";
 
@@ -276,6 +277,36 @@ describe("FConfiguration#toDynamicView() tests", function () {
 		assert.equal(itemsArray[1].name, "2");
 	});
 
+	it("Should return prometheus value if prometheus in grafana is defined", function () {
+		const config = FConfiguration.factoryJson({
+			"grafana.prometheus": "1",
+		});
+
+		const viewRoot = config.toDynamicView();
+		assert.isDefined(viewRoot);
+
+		const grafanaNamespace = viewRoot["grafana"];
+		assert.isDefined(grafanaNamespace);
+
+		const prometheus = grafanaNamespace["?prometheus"];
+		assert.equal(prometheus, "1");
+	});
+
+	it("Should return empty string if prometheus in grafana is undefined", function () {
+		const config = FConfiguration.factoryJson({
+			"grafana.loki": "1",
+		});
+
+		const viewRoot = config.toDynamicView();
+		assert.isDefined(viewRoot);
+
+		const grafanaNamespace = viewRoot["grafana"];
+		assert.isDefined(grafanaNamespace);
+
+		const prometheus = grafanaNamespace["?loki"];
+		assert.equal(prometheus, "1");
+	});
+
 	it("random tests (need to split)", function () {
 		const config = FConfiguration.factoryJson({
 			"item.0": "example.org",
@@ -317,6 +348,59 @@ describe("FConfiguration#toDynamicView() tests", function () {
 		const optionalSocat = mandatoryProxy["?socat"];
 		assert.isDefined(optionalSocat);
 		assert.equal(optionalSocat["image"], "alpine/socat:1.8.0.1");
+	});
+});
+
+describe("FConfiguration#toDynamicView() tests via Mustache", function () {
+	it("Should return prometheus value", function () {
+		const config = FConfiguration.factoryJson({
+			"grafana.prometheus": "1",
+		});
+
+		const dynamicTemplateDataView = config.toDynamicView();
+		assert.isDefined(dynamicTemplateDataView);
+
+		const templateContent = "{{#grafana}}{{prometheus}}{{/grafana}}";
+		const content = Mustache.render(templateContent, dynamicTemplateDataView, undefined,
+			{
+				escape: function (text) { return text; }
+			});
+
+		assert.equal(content, "1");
+	});
+
+	it("Should return prometheus value if prometheus in grafana is defined", function () {
+		const config = FConfiguration.factoryJson({
+			"grafana.prometheus": "1",
+		});
+
+		const dynamicTemplateDataView = config.toDynamicView();
+		assert.isDefined(dynamicTemplateDataView);
+
+		const templateContent = "{{#grafana}}{{?prometheus}}{{/grafana}}";
+		const content = Mustache.render(templateContent, dynamicTemplateDataView, undefined,
+			{
+				escape: function (text) { return text; }
+			});
+
+		assert.equal(content, "1");
+	});
+
+	it("Should return empty string if prometheus in grafana is undefined", function () {
+		const config = FConfiguration.factoryJson({
+			"grafana.loki": "1",
+		});
+
+		const dynamicTemplateDataView = config.toDynamicView();
+		assert.isDefined(dynamicTemplateDataView);
+
+		const templateContent = "{{#grafana}}{{?prometheus}}{{/grafana}}";
+		const content = Mustache.render(templateContent, dynamicTemplateDataView, undefined,
+			{
+				escape: function (text) { return text; }
+			});
+
+		assert.equal(content, "");
 	});
 });
 

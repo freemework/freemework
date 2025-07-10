@@ -357,9 +357,8 @@ export abstract class FConfiguration {
 				const inner = keyWalker(rootObj, subKeys, sourceConfig.getNamespace(parentKey), target);
 
 				target[parentKey] = inner;
-				target[`?${parentKey}`] = inner;
 
-				const array = Object.keys(inner).filter(key => !key.startsWith("?") && key !== "$parent" && key !== "$root").map(key => {
+				const array = Object.keys(inner).filter(key => key !== "$parent" && key !== "$root").map(key => {
 					const innerObj = inner[key];
 					if (typeof innerObj === "string" || typeof innerObj === "number" || typeof innerObj === "boolean") {
 						return innerObj;
@@ -394,6 +393,16 @@ export abstract class FConfiguration {
 
 		function makeProxyAdapter(ns: ReadonlyArray<string>, obj: any) {
 			return new Proxy(obj, {
+				has(_, property) {
+					if (typeof property === "string") {
+						let objProperty = property;
+						if (property.startsWith("?")) {
+							objProperty = property.substring(1);
+						}
+						return objProperty in obj;
+					}
+					return false;
+				},
 				get(_, property) {
 					if (typeof property === "string") {
 						let objProperty = property;

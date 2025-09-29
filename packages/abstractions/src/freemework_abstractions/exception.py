@@ -1,4 +1,2 @@
-from abc import ABC
-
-class FException(ABC):
+class FException(BaseException):
     pass

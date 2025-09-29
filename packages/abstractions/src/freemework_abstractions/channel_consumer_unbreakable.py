@@ -13,7 +13,7 @@ class FChannelConsumerUnbreakable(ABC, Generic[TChannelEventData, TChannelConsum
     @abstractmethod
     def add_handler(self, cb: FChannelConsumerUnbreakableCallback[TChannelConsumerUnbreakableCallbackEvent[TChannelEventData]]) -> None:
         pass
-    
+
     @abstractmethod
     def remove_handler(self, cb: FChannelConsumerUnbreakableCallback[TChannelConsumerUnbreakableCallbackEvent[TChannelEventData]]) -> None:
         pass

@@ -1,10 +1,12 @@
-from abc import ABC, abstractmethod
 from typing import Generic, TypeVar
 
 TChannelEventData = TypeVar("TData")
 
-class FChannelEvent(ABC, Generic[TChannelEventData]):
+class FChannelEvent(Generic[TChannelEventData]):
+    def __init__(self, data: TChannelEventData):
+        super().__init__()
+        self._data: TChannelEventData = data
+
     @property
-    @abstractmethod
     def data(self) -> TChannelEventData:
-        pass
+        return self._data

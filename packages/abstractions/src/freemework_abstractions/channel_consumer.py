@@ -14,7 +14,7 @@ class FChannelConsumer(ABC, Generic[TChannelEventData, TChannelConsumerCallbackE
     @abstractmethod
     def add_handler(self, cb: FChannelConsumerCallback[TChannelConsumerCallbackEvent[TChannelEventData]]) -> None:
         pass
-    
+
     @abstractmethod
     def remove_handler(self, cb: FChannelConsumerCallback[TChannelConsumerCallbackEvent[TChannelEventData]]) -> None:
         pass

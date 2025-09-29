@@ -1,11 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar
+from typing import Awaitable, Generic
 
+from .channel_event import FChannelEvent, TChannelEventData
 from .execution_context import FExecutionContext
 
-TData = TypeVar('TData')
-
-class FChannelPublisher(ABC, Generic[TData]):
+class FChannelPublisher(ABC, Generic[TChannelEventData]):
     @abstractmethod
-    def publish(executionContext: FExecutionContext, data: TData) -> None:
+    def publish(self, executionContext: FExecutionContext, event: FChannelEvent[TChannelEventData]) -> Awaitable[None]:
         pass

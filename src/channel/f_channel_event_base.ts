@@ -2,7 +2,7 @@ import { FCancellationException } from "../cancellation/index.js";
 import { FException, FExceptionAggregate } from "../exception/index.js";
 import { FExecutionContext } from "../execution_context/index.js";
 
-import { FChannelEvent } from "./FChannelEvent.js";
+import { FChannelEvent } from "./f_channel_event.js";
 
 export class FChannelEventBase<
 	TData = Uint8Array,

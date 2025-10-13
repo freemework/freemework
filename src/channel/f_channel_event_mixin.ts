@@ -1,5 +1,5 @@
-import { FChannelEvent } from "./FChannelEvent.js";
-import { FChannelEventBase } from "./FChannelEventBase.js";
+import { FChannelEvent } from "./f_channel_event.js";
+import { FChannelEventBase } from "./f_channel_event_base.js";
 
 /**
  * @example
@@ -9,7 +9,7 @@ import { FChannelEventBase } from "./FChannelEventBase.js";
  * // is impossible to inherit FChannelEventImpl (due to not supported class
  * // multiple inheritance). By the way we may use Mixin approach...
  * //
- * class SomeEventSource extends Something {
+ * class SomeEventSource extends Something implements FChannelEvent<BroadcastMessage> {
  *    protected onAddFirstHandler(): void {  } // define in needed
  *    protected onRemoveLastHandler(): void { } // define in needed
  * 
@@ -19,7 +19,7 @@ import { FChannelEventBase } from "./FChannelEventBase.js";
  *      // Here we guaranteed all consumers processed the message without exceptions.
  *    }
  * }
- * interface SomeEventSource extends FChannelEventMixin<ApplicationPageContext> { }
+ * interface SomeEventSource extends FChannelEventMixin<BroadcastMessage> { }
  * FChannelEventMixin.applyMixin(SomeEventSource);
  */
 export class FChannelEventMixin<

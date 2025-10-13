@@ -2,7 +2,7 @@ import { FCancellationException } from "../cancellation/index.js";
 import { FException, FExceptionAggregate, FExceptionInvalidOperation } from "../exception/index.js";
 import { FExecutionContext } from "../execution_context/index.js";
 
-import { FChannelSubscriber } from "./FChannelSubscriber.js";
+import { FChannelSubscriber } from "./f_channel_subscriber.js";
 
 export class FChannelSubscriberMixin<
 	TData,

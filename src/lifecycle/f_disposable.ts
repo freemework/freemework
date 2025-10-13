@@ -47,7 +47,7 @@ export abstract class FDisposableBase extends FDisposable {
 	public get disposed(): boolean { return this._disposed === true; }
 	public get disposing(): boolean { return this._disposingPromise !== undefined; }
 
-	public async dispose(): Promise<void> {
+	public dispose(): Promise<void> {
 		if (this._disposed !== true) {
 			if (this._disposingPromise === undefined) {
 				this._disposingPromise = Promise.resolve();

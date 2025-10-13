@@ -95,13 +95,13 @@ export abstract class FInitableBase extends FInitable {
 		return Promise.resolve();
 	}
 
-	public async dispose(): Promise<void> {
+	public dispose(): Promise<void> {
 		if (this._disposed !== true) {
 			if (this._disposingPromise === undefined) {
 				if (this._initializingPromise !== undefined) {
 					this._disposingPromise = this._initializingPromise;
 					this._disposingPromise = this._disposingPromise
-						.then(async () => this.onDispose())
+						.then(() => this.onDispose())
 						.finally(() => {
 							delete this._disposingPromise;
 							this._disposed = true;

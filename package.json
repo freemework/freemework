@@ -1,6 +1,6 @@
 {
 	"name": "@freemework/hosting",
-	"version": "0.16.1",
+	"version": "0.17.0",
 	"description": "Hosting library of the Freemework Project.",
 	"author": {
 		"name": "Freemework Project",
@@ -29,7 +29,7 @@
 		"url": "https://github.com/freemework/hosting/issues"
 	},
 	"engines": {
-		"node": ">=16.0.0 <23"
+		"node": ">=16.0.0 <=24"
 	},
 	"homepage": "https://docs.freemework.org/#common?lang=typescript",
 	"type": "module",
@@ -41,27 +41,27 @@
 		"test:only": "tsc && mocha --require source-map-support/register \"test/**/*.test.js\" --recursive --timeout 30000"
 	},
 	"dependencies": {
-		"@freemework/common": "^0.16.1",
-		"@types/express": "^5.0.1",
-		"@types/node": "^22.15.17",
+		"@freemework/common": "^0.17.0",
+		"@types/express": "^5.0.3",
+		"@types/node": "^24.7.2",
 		"@types/ws": "^8.18.1",
 		"express": "^5.1.0",
-		"ws": "^8.18.2"
+		"ws": "^8.18.3"
 	},
 	"optionalDependencies": {
 		"@iarna/toml": "^2.2.5"
 	},
 	"devDependencies": {
-		"@tsconfig/node22": "^22.0.1",
-		"@tsconfig/strictest": "^2.0.5",
+		"@tsconfig/node22": "^22.0.2",
+		"@tsconfig/strictest": "^2.0.6",
 		"@types/chai": "^5.2.2",
 		"@types/mocha": "^10.0.10",
 		"@types/tmp": "^0.2.6",
 		"c8": "^10.1.3",
-		"chai": "^5.2.0",
-		"mocha": "^11.2.2",
+		"chai": "^6.2.0",
+		"mocha": "^11.7.4",
 		"source-map-support": "^0.5.21",
 		"tmp": "^0.2.3",
-		"typescript": "^5.8.3"
+		"typescript": "^5.9.3"
 	}
 }

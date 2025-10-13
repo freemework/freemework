@@ -35,8 +35,9 @@
 	"cSpell.words": [
 		"devel",
 		"freemework",
-		"Initable",
+		"initable",
 		"lcov",
-		"Middlewarable"
+		"liquidjs",
+		"middlewarable"
 	]
 }

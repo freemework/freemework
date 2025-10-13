@@ -1,4 +1,4 @@
-import { FExceptionArgument, FExceptionInvalidOperation } from "../exception/index.js";
+import { FExceptionArgument } from "../exception/index.js";
 import { FUtilUnReadonly } from "../util/index.js";
 import { FConfigurationException } from "./f_configuration_exception.js";
 
@@ -320,13 +320,7 @@ export abstract class FConfiguration {
 	 */
 	public abstract has(key: string): boolean;
 
-	public toDynamicView(
-		opts: {
-			readonly strict: boolean;
-		} = {
-				strict: true,
-			}
-	): any {
+	public toDynamicView(): any {
 		function keyWalker(rootObj: any, keys: ReadonlyArray<string>, sourceConfig: FConfiguration, parentObject: any) {
 			const target: any = {};
 			if (rootObj === null) {
@@ -393,24 +387,34 @@ export abstract class FConfiguration {
 
 		function makeProxyAdapter(ns: ReadonlyArray<string>, obj: any) {
 			return new Proxy(obj, {
+				getOwnPropertyDescriptor(_, property) {
+					if (typeof property === "string") {
+						if (property in obj) {
+							return {
+								configurable: true,
+								enumerable: true,
+								value: obj[property],
+							};
+						}
+					}
+					if (typeof property === "symbol") {
+						return obj.getOwnPropertyDescriptor(property);
+					}
+					return undefined;
+				},
 				has(_, property) {
 					if (typeof property === "string") {
-						let objProperty = property;
-						if (property.startsWith("?")) {
-							objProperty = property.substring(1);
-						}
-						return objProperty in obj;
+						return property in obj;
+					}
+					if (typeof property === "symbol") {
+						return property in obj;
 					}
 					return false;
 				},
 				get(_, property) {
 					if (typeof property === "string") {
-						let objProperty = property;
-						if (property.startsWith("?")) {
-							objProperty = property.substring(1);
-						}
-						if (objProperty in obj) {
-							const value = obj[objProperty];
+						if (property in obj) {
+							const value = obj[property];
 							if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
 								return value;
 							} else {
@@ -421,17 +425,11 @@ export abstract class FConfiguration {
 							}
 						}
 
-						const fullProperty = [...ns, property].join(".");
-						const isOptionalProperty = fullProperty.includes("?");
-						if (!isOptionalProperty) {
-							if (opts.strict) {
-								throw new FExceptionInvalidOperation(`Non-existing property request '${fullProperty}'.`);
-							} else {
-								return null;
-							}
-						}
+						return null;
 					}
-
+					if (typeof property === "symbol") {
+						return obj[property];
+					}
 					return null;
 				},
 			});
@@ -552,7 +550,7 @@ export class FConfigurationDictionary extends FConfiguration {
 			);
 			return value;
 		} else {
-			throw new FConfigurationException("Current configuration does not have such key. Check your configuration.", key);
+			throw new FConfigurationException("Current configuration does not have such key. Check your configuration.", fullKey);
 		}
 	}
 

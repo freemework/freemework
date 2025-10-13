@@ -5,8 +5,8 @@ export abstract class FConfigurationValue {
 	/**
 	 * Factory constructor
 	 */
-	public static factory(key: string, value: string | null, sourceURI: URL | null, overriden: FConfigurationValue | null): FConfigurationValue {
-		return new _FConfigurationValue(key, value, sourceURI, overriden);
+	public static factory(key: string, value: string | null, sourceURI: URL | null, overridden: FConfigurationValue | null): FConfigurationValue {
+		return new _FConfigurationValue(key, value, sourceURI, overridden);
 	}
 
 	/**
@@ -17,7 +17,7 @@ export abstract class FConfigurationValue {
 	public abstract get sourceURI(): URL | null;
 
 	/**
-	 * Reference to an overriden value in chain configuration.
+	 * Reference to an overridden value in chain configuration.
 	 */
 	public abstract get overridden(): FConfigurationValue | null;
 

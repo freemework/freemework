@@ -1,6 +1,7 @@
 {
 	"extends": "./tsconfig-package.json",
 	"compilerOptions": {
+		"listFiles": true,
 		"module": "CommonJS",
 		"outDir": ".dist/lib/cjs/"
 	}

@@ -1,6 +1,6 @@
 [project]
 name = "freemework_abstractions"
-version = "0.0.3"
+version = "0.0.4"
 description = "TBD"
 authors = [
     {name = "Max Anurin", email = "maxim.anurin@freemework.org"},

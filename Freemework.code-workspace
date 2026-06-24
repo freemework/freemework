@@ -1,11 +1,16 @@
 {
 	"folders": [
 		{
-			"name": "workspace",
-			"path": "."
+			"path": "docs"
 		},
 		{
-			"path": "docs"
+			"path": "src-python"
+		},
+		{
+			"path": "src-rust"
+		},
+		{
+			"path": "src-typescript"
 		},
 		{
 			"path": "src-decimal_bignumberjs-typescript"
@@ -24,7 +29,11 @@
 		},
 		{
 			"path": "src-workflow-typescript"
-		}
+		},
+		{
+			"name": "workspace",
+			"path": "."
+		},
 	],
 	"settings": {
 		"cSpell.words": [

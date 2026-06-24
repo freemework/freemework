@@ -3,5 +3,10 @@
 	"include": [
 		"src/**/*.ts",
 		"test/**/*.ts"
-	]
+	],
+	"compilerOptions": {
+		"types": [
+			"mocha"
+		]
+	},
 }

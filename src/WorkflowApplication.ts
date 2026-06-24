@@ -6,6 +6,7 @@ import {
   FExceptionInvalidOperation,
   FExecutionContext,
   FLogger,
+  FLoggerLabel,
   FLoggerLabelsExecutionContext,
   FSqlConnection,
   FSqlConnectionFactoryExecutionContext,
@@ -23,6 +24,11 @@ import { WorkflowDataPersistentFacade } from './WorkflowDataPersistentFacade.js'
 import { WorkflowVirtualMachine } from './WorkflowVirtualMachine.js';
 
 const LOCK_TIMEOUT_SECONDS = 64;
+
+export class WorkflowApplicationLoggerLabel extends FLoggerLabel {
+    public static readonly WORKFLOW_UUID = new WorkflowApplicationLoggerLabel("workflow.uuid", "TDB");
+    // ...
+}
 
 export class WorkflowApplication<TDataContext = {}> {
   private static _lockInstanceName: string | null = null;
@@ -363,7 +369,7 @@ export class WorkflowApplication<TDataContext = {}> {
       throw new FExceptionInvalidOperation('Cannot start terminated workflow');
     }
 
-    executionContext = new FLoggerLabelsExecutionContext(executionContext, { workflowUuid: this.workflowUuid });
+    executionContext = new FLoggerLabelsExecutionContext(executionContext, WorkflowApplicationLoggerLabel.WORKFLOW_UUID.value(this.workflowUuid));
 
     let prevActivity: Activity | null = null;
     let activityHangsCounter = 0;

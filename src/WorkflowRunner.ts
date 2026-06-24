@@ -11,7 +11,7 @@ import {
 } from '@freemework/common';
 
 import { BugDetectedError } from './common.js';
-import { WorkflowApplication } from './WorkflowApplication.js';
+import { WorkflowApplication, WorkflowApplicationLoggerLabel } from './WorkflowApplication.js';
 import { WorkflowDataCacheFacade } from './WorkflowDataCacheFacade.js';
 
 const WORKER_TICK_SLEEP_TIMEOUT = 1000;
@@ -145,9 +145,10 @@ export class WorkflowRunner extends FInitableBase {
     );
 
     if (wfApp !== null) {
-      const executionContext: FExecutionContext = new FLoggerLabelsExecutionContext(this.initExecutionContext, {
-        workflowUuid: wfApp.workflowUuid,
-      });
+      const executionContext: FExecutionContext = new FLoggerLabelsExecutionContext(
+        this.initExecutionContext,
+        WorkflowApplicationLoggerLabel.WORKFLOW_UUID.value(wfApp.workflowUuid),
+      );
       // === JUST FOR DEBUG ===
       // if (wfApp.currentActivity instanceof BreakpointActivity) {
       // 	await Fsleep(this._shutdownCancellationTokenSource.token, 30000);

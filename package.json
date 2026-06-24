@@ -1,6 +1,6 @@
 {
 	"name": "@freemework/workflow",
-	"version": "0.13.3",
+	"version": "0.17.0",
 	"description": "Workflow library of the Freemework Project.",
 	"author": {
 		"name": "Freemework Project",
@@ -30,7 +30,7 @@
 		"url": "https://github.com/freemework/freemework/issues"
 	},
 	"engines": {
-		"node": ">=16.0.0 <21"
+		"node": ">=16.0.0 <25"
 	},
 	"homepage": "https://docs.freemework.org/#common?lang=typescript",
 	"type": "module",
@@ -42,25 +42,26 @@
 		"test:only": "tsc && mocha --require source-map-support/register \"test/**/*.test.js\" --recursive --timeout 30000"
 	},
 	"dependencies": {
-		"@freemework/common": "^0.13.0",
-		"@freemework/sql.postgres": "^0.13.1",
+		"@freemework/common": "^0.17.0",
+		"@freemework/sql.postgres": "^0.16.0",
 		"@types/node": "^18.19.2",
-		"ioredis": "^5.3.2",
-		"semver": "^7.5.4",
-		"uuid": "^9.0.1"
+		"ioredis": "^5.11.1",
+		"reflect-metadata": "^0.2.2",
+		"semver": "^7.8.5",
+		"uuid": "^14.0.1"
 	},
 	"devDependencies": {
 		"@tsconfig/node18": "^18.2.2",
-		"@tsconfig/strictest": "^2.0.2",
-		"@types/chai": "^4.3.11",
+		"@tsconfig/strictest": "^2.0.8",
+		"@types/chai": "^5.2.3",
 		"@types/ioredis": "^5.0.0",
-		"@types/mocha": "^10.0.6",
-		"@types/semver": "^7.5.6",
-		"@types/uuid": "^9.0.7",
-		"c8": "^9.1.0",
-		"chai": "^5.0.0",
-		"mocha": "^10.2.0",
+		"@types/mocha": "^10.0.10",
+		"@types/semver": "^7.7.1",
+		"@types/uuid": "^11.0.0",
+		"c8": "^11.0.0",
+		"chai": "^6.2.2",
+		"mocha": "^11.7.6",
 		"source-map-support": "^0.5.21",
-		"typescript": "^5.3.3"
+		"typescript": "^6.0.3"
 	}
 }

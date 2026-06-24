@@ -40,7 +40,8 @@ jobs:
           mv package.json package.json-bak
           VERSION=$(jq -r '.version' package.json-bak)
           SHORT_GITHUB_SHA=$(echo "${GITHUB_SHA}" | cut -c1-8)
-          jq ".version=\"${VERSION}-snapshot.${SHORT_GITHUB_SHA}\"" package.json-bak > package.json
+          BRANCH=$(echo -n "${GITHUB_REF_NAME}" | cut -d'#' -f2)
+          jq ".version=\"${VERSION}-snapshot.${SHORT_GITHUB_SHA}-${BRANCH}\"" package.json-bak > package.json
           rm package.json-bak
           npm publish
         env:

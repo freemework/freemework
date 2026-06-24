@@ -1,0 +1,16 @@
+[workspace]
+
+resolver = "2"
+
+members = [
+    "freemework_abstractions",
+    "freemework_common",
+    "freemework_jsonrpc",
+]
+
+[workspace.package]
+version = "0.1.0"
+authors = ["Freemework Developers"]
+edition = "2024"
+description = "TBD"
+documentation = "https://docs.freemework.org/"

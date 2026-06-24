@@ -1,0 +1,15 @@
+[package]
+name = "freemework_jsonrpc"
+authors.workspace = true
+description.workspace = true
+documentation.workspace = true
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+freemework_abstractions = { path = "../freemework_abstractions" }
+futures = "0.3"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = { version = "1.0.150", features = ["preserve_order"] }
+
+[dev-dependencies]

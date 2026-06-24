@@ -1,0 +1,14 @@
+[package]
+name = "freemework_common"
+authors.workspace = true
+description.workspace = true
+documentation.workspace = true
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+futures = "0.3"
+freemework_abstractions = { path = "../freemework_abstractions" }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["rt", "macros", "test-util"] }

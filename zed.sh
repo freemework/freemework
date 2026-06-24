@@ -1,8 +1,4 @@
 #!/bin/sh
 #
 
-exec zed \
-  docs \
-  src-python \
-  src-rust \
-  src-typescript
+exec zed $(jq --raw-output '.folders[] | select(.path != ".") | .path' Freemework.code-workspace)

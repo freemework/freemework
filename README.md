@@ -61,7 +61,7 @@ git push origin "src-${NEW_LANG}#dev"
 
 See at [StackOverflow](https://stackoverflow.com/questions/53005845/checking-out-orphan-branch-in-new-work-tree)
 
-### Remove all Git worktrees
+### Remove all Git worktree
 
 ```shell
 for SRC in src-*; do git worktree remove "${SRC}"; done

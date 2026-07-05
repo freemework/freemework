@@ -1,3 +1,5 @@
+pub mod sync;
+
 mod f_using;
 
 // Re-export in lib-root

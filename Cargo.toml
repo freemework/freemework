@@ -18,6 +18,6 @@ license-file = "LICENSE"
 publish = ["freemework"]
 
 [workspace.dependencies]
-freemework_abstractions = { version = "*", path = "freemework_abstractions", registry = "freemework" }
-freemework_common = { version = "*", path = "freemework_common", registry = "freemework" }
-freemework_jsonrpc = { version = "*", path = "freemework_jsonrpc", registry = "freemework" }
+freemework_abstractions = { version = "0.1.0", path = "freemework_abstractions", registry = "freemework" }
+freemework_common = { version = "0.1.0", path = "freemework_common", registry = "freemework" }
+freemework_jsonrpc = { version = "0.1.0", path = "freemework_jsonrpc", registry = "freemework" }

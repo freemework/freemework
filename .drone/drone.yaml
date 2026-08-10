@@ -1,0 +1,20 @@
+kind: template
+load: edgebus-ops.star
+data:
+  stages:
+    - kind: build.cargo.package
+      name: freemework_abstractions
+      workspace-package: freemework_abstractions
+      registry: "sparse+https://gitea.anurin.name/api/packages/freemework/cargo/"
+    - kind: build.cargo.package
+      name: freemework_common
+      workspace-package: freemework_common
+      workspace-package-deps:
+        - freemework_abstractions
+      registry: "sparse+https://gitea.anurin.name/api/packages/freemework/cargo/"
+    - kind: build.cargo.package
+      name: freemework_jsonrpc
+      workspace-package: freemework_jsonrpc
+      workspace-package-deps:
+        - freemework_abstractions
+      registry: "sparse+https://gitea.anurin.name/api/packages/freemework/cargo/"

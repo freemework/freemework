@@ -3,17 +3,23 @@ load: edgebus-ops.star
 data:
   stages:
     - kind: build.cargo.package
+      ref_branch: "src-rust#dev"
       name: freemework_abstractions
+      configuration: snapshot
       workspace-package: freemework_abstractions
       registry: "sparse+https://gitea.anurin.name/api/packages/freemework/cargo/"
     - kind: build.cargo.package
+      ref_branch: "src-rust#dev"
       name: freemework_common
+      configuration: snapshot
       workspace-package: freemework_common
       workspace-package-deps:
         - freemework_abstractions
       registry: "sparse+https://gitea.anurin.name/api/packages/freemework/cargo/"
     - kind: build.cargo.package
+      ref_branch: "src-rust#dev"
       name: freemework_jsonrpc
+      configuration: snapshot
       workspace-package: freemework_jsonrpc
       workspace-package-deps:
         - freemework_abstractions

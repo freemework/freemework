@@ -9,7 +9,7 @@ version.workspace = true
 
 [dependencies]
 futures = "0.3"
-freemework_abstractions = { path = "../freemework_abstractions" }
+freemework_abstractions = { path = "../freemework_abstractions", registry = "freemework" }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["rt", "macros", "test-util"] }

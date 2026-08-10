@@ -8,7 +8,7 @@ license-file.workspace = true
 version.workspace = true
 
 [dependencies]
-freemework_abstractions = { path = "../freemework_abstractions" }
+freemework_abstractions = { path = "../freemework_abstractions", registry = "freemework" }
 futures = "0.3"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = { version = "1.0.150", features = ["preserve_order"] }

@@ -1,2 +1,3 @@
 [registries.freemework]
 index = "sparse+https://gitea.anurin.name/api/packages/freemework/cargo/"
+credential-provider = "cargo:token"

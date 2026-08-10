@@ -14,3 +14,4 @@ authors = ["Freemework Developers"]
 edition = "2024"
 description = "TBD"
 documentation = "https://docs.freemework.org/"
+license-file = "LICENSE"

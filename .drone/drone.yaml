@@ -8,6 +8,7 @@ data:
       configuration: snapshot
       workspace-package: freemework_abstractions
       registry-name: "freemework"
+      registry-secret: "CARGO_REGISTRY_TOKEN"
     - kind: build.cargo.package
       ref_branch: "src-rust#dev"
       name: freemework_common
@@ -16,6 +17,7 @@ data:
       workspace-package-deps:
         - freemework_abstractions
       registry-name: "freemework"
+      registry-secret: "CARGO_REGISTRY_TOKEN"
     - kind: build.cargo.package
       ref_branch: "src-rust#dev"
       name: freemework_jsonrpc
@@ -24,3 +26,4 @@ data:
       workspace-package-deps:
         - freemework_abstractions
       registry-name: "freemework"
+      registry-secret: "CARGO_REGISTRY_TOKEN"

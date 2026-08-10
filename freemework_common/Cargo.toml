@@ -5,11 +5,12 @@ description.workspace = true
 documentation.workspace = true
 edition.workspace = true
 license-file.workspace = true
+publish.workspace = true
 version.workspace = true
 
 [dependencies]
 futures = "0.3"
-freemework_abstractions = { path = "../freemework_abstractions", registry = "freemework" }
+freemework_abstractions = { workspace = true }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["rt", "macros", "test-util"] }

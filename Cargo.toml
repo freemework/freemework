@@ -15,3 +15,9 @@ edition = "2024"
 description = "TBD"
 documentation = "https://docs.freemework.org/"
 license-file = "LICENSE"
+publish = ["freemework"]
+
+[workspace.dependencies]
+freemework_abstractions = { version = "*", path = "freemework_abstractions", registry = "freemework" }
+freemework_common = { version = "*", path = "freemework_common", registry = "freemework" }
+freemework_jsonrpc = { version = "*", path = "freemework_jsonrpc", registry = "freemework" }

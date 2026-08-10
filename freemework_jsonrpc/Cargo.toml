@@ -5,10 +5,11 @@ description.workspace = true
 documentation.workspace = true
 edition.workspace = true
 license-file.workspace = true
+publish.workspace = true
 version.workspace = true
 
 [dependencies]
-freemework_abstractions = { path = "../freemework_abstractions", registry = "freemework" }
+freemework_abstractions = { workspace = true }
 futures = "0.3"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = { version = "1.0.150", features = ["preserve_order"] }

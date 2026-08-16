@@ -3,7 +3,6 @@ use std::{any::Any, sync::Arc};
 pub trait FExecutionContextTrait: Any + Send + Sync {
     fn as_any(&self) -> &dyn Any;
 }
-
 pub type FExecutionContext = Arc<dyn FExecutionContextTrait>;
 
 #[cfg(test)]

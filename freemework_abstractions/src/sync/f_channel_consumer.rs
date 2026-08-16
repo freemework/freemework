@@ -1,7 +1,9 @@
 use futures::future::BoxFuture;
 use std::sync::Arc;
 
-use crate::sync::{FChannelEvent, FExecutionContext};
+use super::f_channel_event::FChannelEvent;
+use super::f_exception::FException;
+use super::f_execution_context::FExecutionContext;
 
 //Define callback type
 pub type FChannelConsumerCallback<T, TResult> = Arc<
@@ -11,10 +13,8 @@ pub type FChannelConsumerCallback<T, TResult> = Arc<
 >;
 
 pub trait FChannelConsumer<T> {
-    type Error;
-
-    fn add_handler(&self, cb: &FChannelConsumerCallback<T, Self::Error>);
-    fn remove_handler(&self, cb: &FChannelConsumerCallback<T, Self::Error>);
+    fn add_handler(&mut self, cb: &FChannelConsumerCallback<T, FException>);
+    fn remove_handler(&mut self, cb: &FChannelConsumerCallback<T, FException>);
 }
 
 #[cfg(test)]
@@ -45,17 +45,15 @@ mod tests {
 
     #[derive(Default)]
     pub struct MyChannelConsumer<T> {
-        handlers: Mutex<Vec<FChannelConsumerCallback<T, String>>>,
+        handlers: Mutex<Vec<FChannelConsumerCallback<T, FException>>>,
     }
 
     impl<T> FChannelConsumer<T> for MyChannelConsumer<T> {
-        type Error = String;
-
-        fn add_handler(&self, cb: &FChannelConsumerCallback<T, String>) {
+        fn add_handler(&mut self, cb: &FChannelConsumerCallback<T, FException>) {
             self.handlers.lock().unwrap().push(Arc::clone(cb));
         }
 
-        fn remove_handler(&self, cb: &FChannelConsumerCallback<T, String>) {
+        fn remove_handler(&mut self, cb: &FChannelConsumerCallback<T, FException>) {
             self.handlers
                 .lock()
                 .unwrap()
@@ -64,6 +62,12 @@ mod tests {
     }
 
     impl<T: Clone + Send + Sync + 'static> MyChannelConsumer<T> {
+        pub fn create_publisher() -> F {
+            Self {
+                handlers: Mutex::new(Vec::new()),
+            }
+        }
+
         pub async fn notify(&self, payload: T) {
             println!("Notify execution ...");
 
@@ -84,13 +88,22 @@ mod tests {
 
     #[tokio::test]
     async fn test_async_subscribe() {
-        let channel = Arc::new(MyChannelConsumer::<i32>::default());
+        // #[derive(Debug, Clone)]
+        // struct MyError;
+        // impl std::fmt::Display for MyError {
+        //     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        //         write!(f, "invalid first item to double")
+        //     }
+        // }
+        // impl std::error::Error for MyError {}
+
+        let mut channel = MyChannelConsumer::<i32>::default();
 
         let handler1_call_count = Arc::new(Mutex::new(0));
         let handler2_call_count = Arc::new(Mutex::new(0));
 
         let counter1 = Arc::clone(&handler1_call_count);
-        let handler1: FChannelConsumerCallback<i32, String> = Arc::new(move |ex, event| {
+        let handler1: FChannelConsumerCallback<i32, FException> = Arc::new(move |ex, event| {
             let test = ex
                 .as_any()
                 .downcast_ref::<MyExecutionContext>()
@@ -106,7 +119,7 @@ mod tests {
         });
 
         let counter2 = Arc::clone(&handler2_call_count);
-        let handler2: FChannelConsumerCallback<i32, String> = Arc::new(move |ex, event| {
+        let handler2: FChannelConsumerCallback<i32, FException> = Arc::new(move |ex, event| {
             let test = ex
                 .as_any()
                 .downcast_ref::<MyExecutionContext>()

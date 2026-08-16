@@ -1,13 +1,13 @@
-use std::pin::Pin;
+use futures::future::BoxFuture;
 
-use crate::{f_channel_event::FChannelEvent, f_execution_context::FExecutionContext};
+use super::f_channel_event::FChannelEvent;
+use super::f_exception::FException;
+use super::f_execution_context::FExecutionContext;
 
 pub trait FChannelPublisher<T> {
-    type Error;
-
     fn publish(
         &self,
         execution_context: FExecutionContext,
         event: FChannelEvent<T>,
-    ) -> Pin<Box<dyn Future<Output = Result<(), Self::Error>>>>;
+    ) -> BoxFuture<'_, Result<(), FException>>;
 }

@@ -1,14 +1,14 @@
 use std::pin::Pin;
 
-pub type FDisposableInitRet<'a, TInitError> =
-    Pin<Box<dyn Future<Output = Result<(), TInitError>> + Send + 'a>>;
+use super::f_exception::FException;
+
+pub type FDisposableInitRet<'a> =
+    Pin<Box<dyn Future<Output = Result<(), FException>> + Send + 'a>>;
 
 pub type FDisposableDisposeRet<'a> = Pin<Box<dyn Future<Output = ()> + Send + 'a>>;
 
 pub trait FDisposable {
-    type InitError;
-
-    fn init(&mut self) -> FDisposableInitRet<'_, Self::InitError> {
+    fn init(&mut self) -> FDisposableInitRet<'_> {
         Box::pin(async move { Ok(()) })
     }
 

@@ -1,6 +1,6 @@
 use std::{any::Any, rc::Rc};
 
-pub trait FExecutionContextTrait: Any + Send + Sync {
+pub trait FExecutionContextTrait: Any {
     fn as_any(&self) -> &dyn Any;
 }
 

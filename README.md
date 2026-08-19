@@ -31,6 +31,7 @@ cd ~/w-freemework
 
 # Obsolete
 git worktree add src-common-typescript                "src-common-typescript#dev"
+git worktree add src-common-dart                      "src-common-dart#dev"
 git worktree add src-decimal_bignumberjs-typescript   "src-decimal_bignumberjs-typescript#dev"
 git worktree add src-hosting-typescript               "src-hosting-typescript#dev"
 git worktree add src-sql_misc_migration-typescript    "src-sql_misc_migration-typescript#dev"

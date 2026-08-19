@@ -25,6 +25,9 @@
 			"path": "src-sql_postgres-typescript"
 		},
 		{
+			"path": "src-common-dart"
+		},
+		{
 			"path": "src-common-typescript"
 		},
 		{

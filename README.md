@@ -39,6 +39,7 @@ git worktree add src-sql_postgres-typescript          "src-sql_postgres-typescri
 git worktree add src-workflow-typescript              "src-workflow-typescript#dev"
 
 # New layout
+git worktree add docs                                 "docs"
 git worktree add src-python                           "src-python#dev"
 git worktree add src-rust                             "src-rust#dev"
 git worktree add src-typescript                       "src-typescript#dev"

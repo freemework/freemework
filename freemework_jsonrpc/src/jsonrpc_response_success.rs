@@ -29,6 +29,14 @@ impl TryFrom<&[u8]> for JsonRpcResponseSuccessMessage {
     }
 }
 
+impl TryFrom<&str> for JsonRpcResponseSuccessMessage {
+    type Error = serde_json::Error;
+
+    fn try_from(json_text: &str) -> Result<Self, Self::Error> {
+        serde_json::from_str(json_text)
+    }
+}
+
 impl TryInto<Vec<u8>> for JsonRpcResponseSuccessMessage {
     type Error = serde_json::Error;
 

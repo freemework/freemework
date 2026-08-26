@@ -26,3 +26,35 @@ impl JsonRpcRequestMessage {
         }
     }
 }
+
+impl TryFrom<&[u8]> for JsonRpcRequestMessage {
+    type Error = serde_json::Error;
+
+    fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
+        serde_json::from_slice(bytes)
+    }
+}
+
+impl TryFrom<&str> for JsonRpcRequestMessage {
+    type Error = serde_json::Error;
+
+    fn try_from(json_text: &str) -> Result<Self, Self::Error> {
+        serde_json::from_str(json_text)
+    }
+}
+
+impl TryInto<Vec<u8>> for JsonRpcRequestMessage {
+    type Error = serde_json::Error;
+
+    fn try_into(self) -> Result<Vec<u8>, Self::Error> {
+        serde_json::to_vec(&self)
+    }
+}
+
+impl TryInto<String> for JsonRpcRequestMessage {
+    type Error = serde_json::Error;
+
+    fn try_into(self) -> Result<String, Self::Error> {
+        serde_json::to_string_pretty(&self)
+    }
+}

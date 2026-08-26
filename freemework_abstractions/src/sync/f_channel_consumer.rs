@@ -48,6 +48,15 @@ mod tests {
         handlers: Mutex<Vec<FChannelConsumerCallback<T, FException>>>,
     }
 
+    impl<T> std::fmt::Debug for MyChannelConsumer<T> {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f
+            .debug_struct("MyChannelConsumer")
+            //.field("handlers", &self.handlers)
+            .finish()
+    }
+    }
+    
     impl<T> FChannelConsumer<T> for MyChannelConsumer<T> {
         fn add_handler(&mut self, cb: &FChannelConsumerCallback<T, FException>) {
             self.handlers.lock().unwrap().push(Arc::clone(cb));
@@ -62,7 +71,7 @@ mod tests {
     }
 
     impl<T: Clone + Send + Sync + 'static> MyChannelConsumer<T> {
-        pub fn create_publisher() -> F {
+        pub fn create_publisher() -> Self {
             Self {
                 handlers: Mutex::new(Vec::new()),
             }
@@ -137,11 +146,14 @@ mod tests {
         channel.add_handler(&handler1);
         channel.add_handler(&handler2);
 
+        let channel = Arc::new(channel);
         println!("Notify 1");
         {
-            let channel_clone_1 = channel.clone();
-            tokio::task::spawn(async move { channel_clone_1.notify(42).await });
+            let channel_clone = channel.clone();
+            let spawn_handle = tokio::task::spawn(async move { channel_clone.notify(42).await });
+            spawn_handle.await.unwrap();
         }
+        let mut channel = Arc::try_unwrap(channel).unwrap();
         // channel_clone_1.notify(42).await;
 
         // Provide a little bit time to process notification in separate thread
@@ -149,11 +161,14 @@ mod tests {
 
         channel.remove_handler(&handler1);
 
+        let channel = Arc::new(channel);
         println!("Notify 2");
         {
-            let channel_clone_2 = channel.clone();
-            tokio::task::spawn(async move { channel_clone_2.notify(100).await });
+            let channel_clone = channel.clone();
+            let spawn_handle = tokio::task::spawn(async move { channel_clone.notify(100).await });
+            spawn_handle.await.unwrap();
         }
+        let channel = Arc::try_unwrap(channel).unwrap();
         // channel_clone_2.notify(42).await;
 
         // Provide a little bit time to process notification in separate thread

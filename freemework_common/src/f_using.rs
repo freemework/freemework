@@ -1,19 +1,22 @@
 use std::pin::Pin;
 
-use freemework_abstractions::FException;
-use freemework_abstractions::FDisposable;
+use freemework_abstractions::{FDisposable, FException};
 
 pub type FUsingWorkerFuture<'a, TRet> =
     Pin<Box<dyn Future<Output = Result<TRet, FException>> + 'a>>;
 
 ///
 /// ```text
-/// f_using(MyDisposable::new(), |disposable| {
+/// let result = f_using(MyDisposable::new(), |disposable: &mut MyDisposable| -> FUsingWorkerFuture<u32>  {
 ///     Box::pin(async move {
-///         disposable.dowork().await;
+///         disposable.dowork().await?;
+/// 
+///         Ok(42)
 ///     })
 /// })
 /// .await;
+/// 
+/// println!("Result: {}", result.unwrap()); // Output: Result: 42
 /// ```
 ///
 pub async fn f_using<TDisposable, TWorkerFun, TWorkerRet>(
@@ -38,12 +41,11 @@ where
 mod tests {
     use super::*;
 
-    pub enum MyDisposableError {}
     pub struct MyDisposable {
         test: u32,
     }
     impl MyDisposable {
-        fn setup_local(&mut self) {
+        fn increment(&mut self) {
             self.test += 1;
         }
     }
@@ -73,22 +75,23 @@ mod tests {
     async fn test_f_using_1() {
         let result = f_using(
             MyDisposable { test: 12 },
-            |my_worker: &mut MyDisposable| -> FUsingWorkerFuture<()> {
+            |my_worker: &mut MyDisposable| -> FUsingWorkerFuture<u32> {
                 Box::pin(async move {
                     // local scope
                     {
                         my_worker.test = 42;
-                        my_worker.setup_local();
+                        my_worker.increment();
                     }
 
                     assert_eq!(my_worker.test, 43);
 
-                    Ok(())
+                    Ok(my_worker.test)
                 })
             },
         )
         .await;
 
         assert!(result.is_ok());
+        assert_eq!(result.unwrap(), 43);
     }
 }

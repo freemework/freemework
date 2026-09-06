@@ -1,12 +1,11 @@
-use futures::future::BoxFuture;
+use futures::future::LocalBoxFuture;
 
-use super::FException;
-use super::FExecutionContext;
+use super::{FException, FExecutionContext};
 
 pub trait FChannelInvoke<TIn: Send + Sync, TOut: Send + Sync> {
     fn invoke(
         &self,
         execution_context: FExecutionContext,
         args: TIn,
-    ) -> BoxFuture<'_, Result<TOut, FException>>;
+    ) -> LocalBoxFuture<'_, Result<TOut, FException>>;
 }

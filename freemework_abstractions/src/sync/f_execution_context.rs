@@ -26,10 +26,7 @@ mod tests {
 
         let closure = move || {
             if let Some(my_ctx) = ctx.as_any().downcast_ref::<MyExecutionContext>() {
-                println!(
-                    "Успішно відновлено MyExecutionContext! ID: {}",
-                    my_ctx.request_id
-                );
+                assert_eq!(my_ctx.request_id, "12345");
             } else {
                 assert!(false, "Не вдалося привести тип.");
             }

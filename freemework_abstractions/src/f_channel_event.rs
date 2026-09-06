@@ -1,10 +1,10 @@
 use std::rc::Rc;
 
-pub trait FChannelEventTrait<T> {
-    fn data(&self) -> &T;
+pub trait FChannelEventTrait<TEventArgs> {
+    fn data(&self) -> &TEventArgs;
 }
 
-pub type FChannelEvent<T> = Rc<dyn FChannelEventTrait<T>>;
+pub type FChannelEvent<TEventArgs> = Rc<dyn FChannelEventTrait<TEventArgs>>;
 
 #[cfg(test)]
 mod tests {

@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
-pub trait FChannelEventTrait<T: Send + Sync>: Send + Sync {
-    fn data(&self) -> &T;
+pub trait FChannelEventTrait<TEventArgs: Send + Sync>: Send + Sync {
+    fn data(&self) -> &TEventArgs;
 }
 
-pub type FChannelEvent<T> = Arc<dyn FChannelEventTrait<T>>;
+pub type FChannelEvent<TEventArgs> = Arc<dyn FChannelEventTrait<TEventArgs>>;
 
 #[cfg(test)]
 mod tests {

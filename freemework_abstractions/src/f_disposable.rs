@@ -1,11 +1,9 @@
-use std::pin::Pin;
+use futures::future::LocalBoxFuture;
 
 use super::f_exception::FException;
 
-pub type FDisposableInitRet<'a> =
-    Pin<Box<dyn Future<Output = Result<(), FException>> + 'a>>;
-
-pub type FDisposableDisposeRet<'a> = Pin<Box<dyn Future<Output = ()> + 'a>>;
+pub type FDisposableInitRet<'a> = LocalBoxFuture<'a, Result<(), FException>>;
+pub type FDisposableDisposeRet<'a> = LocalBoxFuture<'a, ()>;
 
 pub trait FDisposable {
     fn init(&mut self) -> FDisposableInitRet<'_> {

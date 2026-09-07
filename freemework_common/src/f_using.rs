@@ -1,9 +1,8 @@
-use std::pin::Pin;
+use futures::future::LocalBoxFuture;
 
 use freemework_abstractions::{FDisposable, FException};
 
-pub type FUsingWorkerFuture<'a, TRet> =
-    Pin<Box<dyn Future<Output = Result<TRet, FException>> + 'a>>;
+pub type FUsingWorkerFuture<'a, TRet> = LocalBoxFuture<'a, Result<TRet, FException>>;
 
 ///
 /// ```text
@@ -39,6 +38,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use futures::future::BoxFuture;
+
     use super::*;
 
     pub struct MyDisposable {
@@ -93,5 +94,26 @@ mod tests {
 
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), 43);
+    }
+
+    #[tokio::test]
+    async fn test_f_using_ensure_no_sync() {
+        fn sync_guard() -> LocalBoxFuture<'static, ()> {
+            Box::pin(async move {
+                println!("hello");
+            })
+        }
+
+        f_using(
+            MyDisposable { test: 12 },
+            |_my_worker: &mut MyDisposable| -> FUsingWorkerFuture<()> {
+                Box::pin(async move {
+                    sync_guard().await;
+
+                    Ok(())
+                })
+            },
+        )
+        .await.unwrap();
     }
 }
